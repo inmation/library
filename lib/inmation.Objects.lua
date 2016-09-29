@@ -2,14 +2,31 @@
 -- (c) 2016, inmation Software GmbH
 -- timo.klingenmeier@inmation.com
 
+local strLib = require("inmation.String")
+
 objLib = {
 	-- conditional return
 	iif = function(cond, yes, no)
 		if cond then return yes else return no end
 	end,
+
+	inmationSafePath = function(path)
+		local pathFields = strLib.split(path, '/')
+		local result = ''
+		for i, v in ipairs(pathFields) do
+			if v ~= '' then
+				if result == '' then
+					result = v
+				else
+					result = result .. '/' .. v
+				end
+			end
+		end
+		return result
+	end,
 	
 	exists = function(path, name)
-		if nil == path then error("Name withoout path: " .. name) end
+		if nil == path then error("Name without path: " .. name) end
 		local o = inmation.obj(path .. "/" .. name)
 		return nil ~= o and "table" == type(o) and #o.ObjectName
 	end,
@@ -253,14 +270,13 @@ objLib = {
 		local com = false
 		local s 
 		if not objLib.exists(path, name) then
-			--error("Want to create: " .. name .. " in " .. path)
 			obj = inmation.createobject(path, "MODEL_CLASS_GENFOLDER")
 			obj.ObjectName = name
 			com = true
 			s = "Ensured by creation '" .. p .. "'"
 		else
 			obj = inmation.getobject(p)
-			if not #obj.ObjectName then error("Ambigous") end
+			if not #obj.ObjectName then error("Ambiguous") end
 			s = "Ensured existing '" .. p .. "'"
 		end
 		
@@ -292,9 +308,31 @@ objLib = {
 		
 		return p, obj, s
 	end,
+
+	ensureFolderPath = function(originPath, extensionPath)
+		local nodePath = originPath
+		local pathFields = strLib.split(extensionPath, '/')
+
+		for i, folderName in ipairs(pathFields) do
+
+			if  folderName ~= '' then
+				local folderPath = nodePath .. '/' .. folderName
+				local folderObj = inmation.getobject(folderPath)
+
+				if not folderObj then
+					folderObj = inmation.createobject(nodePath, "MODEL_CLASS_GENFOLDER")
+					folderObj.ObjectName = folderName
+					folderObj:commit()
+				end
+				-- Modify node path for next level
+				nodePath = nodePath .. '/' .. folderName
+			end
+		end
+		return inmation.getobject(originPath .. '/' .. extensionPath)
+	end,
 	
 	-- Action Items are missing a location compound!
-	ensureAction = function(path, name, desc, sysal, dispal, eu, dp, arc,  script, custkeys, custvals)
+	ensureAction = function(path, name, desc, sysal, dispal, eu, dp, arc, script, custkeys, custvals)
 		local p
 		local obj
 		if not objLib.exists(path, name) then
@@ -347,7 +385,7 @@ objLib = {
 		if not objLib.exists(path, name) then
 			obj = inmation.createobject(path, "MODEL_CLASS_HOLDERITEM")
 			obj.ObjectName = name
-			obj.ObjectDescription = desc
+			if nil ~= desc then obj.ObjectDescription = desc end
 			if nil ~= sysal then obj.SystemAlias = sysal end
 			if nil ~= dispal then obj.DisplayAlias = dispal end
 			if nil ~= eu then obj.OpcEngUnit = eu end
@@ -364,7 +402,7 @@ objLib = {
 		else
 			p = path .. "/" .. name
 			obj = inmation.getobject(p)
-			if desc ~= obj.ObjectDescription then obj.ObjectDescription = desc end
+			if nil ~= desc and desc ~= obj.ObjectDescription then obj.ObjectDescription = desc end
 			if nil ~= sysal then if sysal ~= obj.SystemAlias then obj.SystemAlias = sysal end end
 			if nil ~= dispal then if dispal ~= obj.DisplayAlias then obj.DisplayAlias = dispal end end
 			if nil ~= eu then if eu ~= obj.OpcEngUnit then obj.OpcEngUnit = eu end end
@@ -394,6 +432,26 @@ objLib = {
 		end
 		
 		return p, obj
+	end,
+	-- options = {
+	--		description = string,
+	--		data = variant,
+	--		dataCallback = function,
+	--		enforceData = boolean,
+	--		systemAlias = string,
+	--		displayAlias = string,
+	--		opcEngUnit = string,
+	-- 		decimalPlaces = number, 
+	--		enableArchiving = boolean,
+	--		customPropertiesKeys = table,
+	--		customPropertiesValues = table,
+	--		location = table
+	-- }
+	ensureHolderWithOptions = function(parentPath, objectName, options)
+		if type(options) ~= "table" then return end
+		return objLib.ensureHolder(parentPath, objectName, options.description, options.data, options.dataCallback, options.enforceData, 
+			options.systemAlias, options.DisplayAlias, options.opcEngUnit, options.decimalPlaces, options.enableArchiving, 
+			options.customPropertiesKeys, options.customPropertiesValues, options.location)
 	end
 }
 
