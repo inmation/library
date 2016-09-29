@@ -4,6 +4,11 @@
 
 strLib = {
 
+	-- Is string nil or empty
+	isEmpty = function(str)
+		return (str or '') == ''
+	end,
+
 	-- tries to guess the separator in a string
 	-- cnt is the hint count
 	-- fix (true/false) indicates no tolerance if set, if not found number must be equal or greater than cnt
@@ -28,8 +33,8 @@ strLib = {
 		-- returns an array of fields based on text and delimiter (one character only)
 		local result = {}
 		local magic = "().%+-*?[]^$"
-		if delim == nil then
-			delim = "%s"
+		if sep == nil then
+			sep = "%s"
 		elseif string.find(sep, magic, 1, true) then
 			-- escape magic
 			sep = "%" .. sep
@@ -48,7 +53,7 @@ strLib = {
 		for n = 1, #str do
 			if 0x20 > str:byte(n) or 0xA0 == str:byte(n) then
 				--error("Here->" .. string.format("%X-%X-%X", str:byte(n-1), str:byte(n), str:byte(n+1)))
-				r = r:sub(1, n-1) .. r:sub(n+1)
+				r = r:sub(1, n - 1) .. r:sub(n + 1)
 			end
 		end
 		return r
@@ -81,7 +86,7 @@ strLib = {
 				-- clean out the quote
 				if 2 <= #tx then
 					if '"' == tx:sub(1,1) then tx = tx:sub(2) end
-					if '"' == tx:sub(-1,-1) then tx = tx:sub(1, #tx-1) end
+					if '"' == tx:sub(-1,-1) then tx = tx:sub(1, #tx - 1) end
 				end
 			end
 			table.insert(result, SL.clean(tx))
