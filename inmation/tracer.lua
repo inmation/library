@@ -8,11 +8,7 @@
 -- 20161103.1   Initial release.
 --
 
--- Global available
-
-FileTracer = {
-
-}
+local FileTracer = {}
 
 FileTracer.__index = FileTracer
 
@@ -43,6 +39,8 @@ function FileTracer:trace(timestamp, severity, msg)
     self:writeLine(tostring(timestamp) .. '\t' .. tostring(severity) .. '\t' .. tostring(msg))
 end
 
+
+-- Global available traceAgent
 traceAgent = {
 
     tracers = {},

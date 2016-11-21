@@ -9,6 +9,21 @@
 --
 require('inmation.table-extension')
 
+-- Proxy trace functions to optional traceAgent.
+local tracer = setmetatable({}, {
+  __index = function(self, method)
+    if traceAgent then
+        return function(self, msg, timespan) 
+            if type(traceAgent[method]) == 'function' then
+                return traceAgent[method](traceAgent, msg, timespan)
+            end
+        end
+    end
+    -- Return empty function when traceAgent is not loaded.
+    return function() end
+  end
+})
+
 local scriptLibraryHelper = function(inmObj)
 
     local result = {
@@ -180,22 +195,7 @@ local scriptLibraryHelper = function(inmObj)
     return result
 end
 
-local tracer = function(callback)
-    local result = {
-        trace = callback,
-
-        traceMessage = function(self, msg)
-            if  nil ~= self.trace then
-                self.trace(msg)    
-            end
-        end
-    }
-    return result
-end
-
 objectLib = {
-
-    tracer = tracer(nil),
 
     ----------------------------------------------------------------------------
     -- Creates a script library helper object which can be used to perform script item changes.
@@ -203,6 +203,7 @@ objectLib = {
     -- @return scriptLibraryHelper library object.
     ----------------------------------------------------------------------------
     scriptLibraryHelper = function(self, obj)
+        tracer:traceVerbose('Creating scriptLibraryHelper')
         result = scriptLibraryHelper(obj)
         return result
     end,
@@ -261,7 +262,7 @@ objectLib = {
 
         if objPointer[propName] ~= propValue then
             objPointer[propName] = propValue
-            self.tracer:traceMessage(string.format("Object '%s'; Changed value of property '%s' from '%s' to '%s'.", inmObj:path(), propName, objPointer[propName], propValue))
+            trace:traceInfo(string.format("Object '%s'; Changed value of property '%s' from '%s' to '%s'.", inmObj:path(), propName, objPointer[propName], propValue))
             if not onlyAssign then
                 inmObj:commit()
             end
@@ -276,7 +277,7 @@ objectLib = {
         if inmObj == nil then
             return
         end
-        self.tracer:traceMessage(string.format("modifyProperties for obj '%s'", inmObj:path()))
+        trace:traceInfo(string.format("modifyProperties for obj '%s'", inmObj:path()))
         -- List with { propertyName = {} }
         local propertyIgnoreList = {}
 
@@ -313,14 +314,10 @@ objectLib = {
 
         if isInmObjModified and not onlyAssign then
             inmObj:commit()
-            self.tracer:traceMessage(string.format("Object '%s' committed successfully.", inmObj:path()))
+            trace:traceInfo(string.format("Object '%s' committed successfully.", inmObj:path()))
         end
         return isInmObjModified, nil
-	end,
-
-    attachTracer = function(self, callback)
-        self.tracer = tracer(callback)
-    end
+	end
 }
 
 return objectLib
