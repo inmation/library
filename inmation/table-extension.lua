@@ -1,11 +1,12 @@
--- inmation.Table-Extension
+-- inmation.table-extension
 -- inmation Script Library Lua Script
 --
--- inmation BNX
+-- (c) 2016 inmation BNX
 --
 -- Version history:
 --
--- 20160919.1       Initial release.
+-- 20161028.2   Added map, imap, ifind
+-- 20160919.1   Initial release.
 --
 
 function table.val_to_str(v)
@@ -41,4 +42,37 @@ function table.tostring(tbl)
     end
   end
   return "{" .. table.concat( result, "," ) .. "}"
+end
+
+function table.map(tbl, predicate)
+    local result = {}
+    for k,v in pairs(tbl) do
+        if type(predicate) == 'function' then
+            local item = predicate(k, v)
+            table.insert(result, item)
+        end
+    end
+    return result
+end
+
+function table.imap(tbl, predicate)
+    local result = {}
+    for i,v in ipairs(tbl) do
+        if type(predicate) == 'function' then
+            local item = predicate(v, i)
+            table.insert(result, item)
+        end
+    end
+    return result
+end
+
+function table.ifind(tbl, predicate)
+    for i,v in ipairs(tbl) do
+        if type(predicate) == 'function' then
+            local found = predicate(v, i)
+            if found then
+                return v, i
+            end
+        end
+    end
 end

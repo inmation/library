@@ -1,30 +1,30 @@
--- ObjectTreeCrawler
+-- inmation.object-tree-crawler
 -- inmation Script Library Lua Script
 --
 -- (c) 2016 inmation BNX
 --
 -- Version history:
--- 20160904.1       Initial release.
+--
+-- 20161018.2   Added Depth
+-- 20160904.1   Initial release.
 --
 
 ObjectTreeCrawler = {
-
     onListeners = {}, -- Array of objects with { type, callback }
-
 }
 
 ObjectTreeCrawler.__index = ObjectTreeCrawler
 
 -- Private
 
-local function notifyListeners(self, obj)
+local function notifyListeners(self, obj, depth)
     -- Explicit set continue to false will stop the crawler going deeper into the tree.
     local continue = nil
     if #self.onListeners > 0 then
         local type = obj:type()
         for i,listener in ipairs(self.onListeners) do
             if listener.type == "" or listener.type == type then
-                local cont = listener.callback(obj)
+                local cont = listener.callback(obj, depth)
                 if false == cont then
                     continue = false;
                 end
@@ -34,13 +34,13 @@ local function notifyListeners(self, obj)
     return continue
 end
 
-local function crawl(self, obj)
-    local continue = notifyListeners(self, obj)
+local function crawl(self, obj, depth)
+    local continue = notifyListeners(self, obj, depth)
     if false == continue then return end
     local children = obj:children()
     if #children > 0 then
         for i,child in ipairs(children) do
-            crawl(self, child)    
+            crawl(self, child, depth + 1)    
         end
     end
 end
@@ -86,8 +86,9 @@ function ObjectTreeCrawler:start(originObjs)
         end
     end
 
+    local depth = 0
     for i,obj in ipairs(objs) do
-        crawl(self, obj)   
+        crawl(self, obj, depth)   
     end
 end
 

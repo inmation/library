@@ -1,17 +1,22 @@
--- inmation.Database
--- Supplies a high-level database object to be used to access SQL servers
--- (c) 2016, inmation Software GmbH
--- timo.klingenmeier@inmation.com
--- marc.vandelangenberg@inmation.com
-
+-- inmation.database
+-- inmation Script Library Lua Script
+--
+-- (c) 2016 inmation
+--
+-- Version history:
+--
+-- 20160925.1   Initial release.
+--
 -- Information about luasql.odbc library:
 -- http://www.tutorialspoint.com/lua/lua_database_access.htm
+--
 
 dbLib = {
 	-- conditional assignment
 	iif = function(boolexp, iftrue, iffalse)		
 		if boolexp then return iftrue else return iffalse end	
-	end,	
+	end,
+
 	db = {
 		driver = nil,
 		env = nil,
@@ -28,9 +33,11 @@ dbLib = {
 			self.usr = usr
 			self.pwd = pwd
 		end,
+		
 		setname = function(self, name)
 			self.name = name
 		end,
+
 		open = function(self)
 			self.driver = require"luasql.odbc"
 			local x = inmation.now()
@@ -39,6 +46,7 @@ dbLib = {
 			self.opentime = inmation.now() - x
 			return nil ~= self.driver and nil ~= self.env and nil ~= self.con
 		end,
+
 		close = function(self)
 			local n = #self.cursors
 			while 0 < n do
@@ -49,12 +57,14 @@ dbLib = {
 			if nil ~= self.con then self.con:close() end
 			if nil ~= self.env then self.env:close() end
 		end,
+
 		insert = function(self, insert_statement)
 			if self.env == nil then error("Invalid database environment") end
 			if self.con == nil then error("Invalid database connection") end
 			local status, errorString = assert(self.con:execute(insert_statement))
 			return status, errorString
 		end,
+
 		-- DEPRECATED: Use 'execute' which also works with insert and update statements.
 		rows = function(self, sql_statement)
 			if self.env == nil then error("Invalid database environment") end
@@ -64,6 +74,7 @@ dbLib = {
 				return self.cursors[#self.cursors]:fetch()
 			end
 		end,
+
 		execute = function(self, sql_statement, callback)
 			if self.env == nil then error("Invalid database environment") end
 			if self.con == nil then error("Invalid database connection") end
@@ -95,6 +106,7 @@ dbLib = {
 				return res
 			end
 		end,
+
 		closecursor = function(self)
 			local i = #self.cursors
 			if 0 < i then
@@ -102,16 +114,21 @@ dbLib = {
 				self.cursors[i] = nil
 			end
 		end,
+
 		numberofopencursors = function(self)
 			return #self.cursors
 		end,
+
 		-- assembles table names correctly
+
 		sqltable = function(self, name)
 			return self.name .. "." .. name
 		end,
+
 		sqlfield = function(self, dbtable, field)
 			return dbtable .. "." .. field
 		end,
+
 		-- assembles SQL field names correctly with a NULL replacement option
 		sqlfields = function(self, dbtable, fields, replace_null)
 			local s = ""
