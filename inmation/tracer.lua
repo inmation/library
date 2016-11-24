@@ -7,6 +7,7 @@
 --
 -- 20161103.1   Initial release.
 --
+local io = require('io')
 
 local FileTracer = {}
 
