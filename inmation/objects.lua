@@ -20,6 +20,11 @@ objectsLib = {
 	ensureObject = function(self, parentPath, propertyList)
 		if type(propertyList) ~= "table" then return nil, 'PropertyList has to be a table.' end
 
+        local parentObj = inmation.getobject(parentPath)
+        if parentObj == nil then
+            return nil, tring.format("Unable to create object with non existing parent path '%s'.", parentPath)
+        end
+
         local objectName = propertyList['ObjectName']
         if objectName == nil then return nil, 'ObjectName not found in propertyList.' end
      
@@ -38,8 +43,10 @@ objectsLib = {
                 if propertyList.ServerType == 'EP_OPC_UA' then
                     inmObj['UaConnection']['OpcUaServerUrl'] = propertyList['UaConnection.OpcUaServerUrl']
                 end
-                inmObj:commit()
             end
+            
+            if propertyList.GenerationType then inmObj.GenerationType = propertyList.GenerationType end
+            inmObj:commit()
         else 
             local objType = inmObj:type()
             if propertyList.Type ~= nil and objType ~= propertyList.Type then
@@ -50,10 +57,8 @@ objectsLib = {
             --     return nil, string.format("Object is of ServerType '%s' instead of '%s'.", inmObj.ServerType, propertyList.ServerType) 
             -- end 
         end
-
+        
         objectLib:modifyProperties(inmObj, propertyList)
-
-        inmObj:commit()
         return inmObj, nil
 	end,
 
