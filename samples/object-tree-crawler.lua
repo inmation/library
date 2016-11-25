@@ -1,4 +1,4 @@
-local Crawler = require("inmation-object-tree-crawler")
+local Crawler = require("inmation.object-tree-crawler")
 
 local crawler = Crawler.new()
 
