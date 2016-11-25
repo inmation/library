@@ -515,7 +515,7 @@ objectLib = {
                 scriptLibraryHelper:clear()	
             end
 
-            for i, scriptListItem in ipairs(propertyList.ScriptLibrary) do
+            for i, scriptItem in ipairs(propertyList.ScriptLibrary.ScriptList) do
                 scriptLibraryHelper:upsertScriptItem(scriptItem)    
             end
             
