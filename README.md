@@ -1,6 +1,4 @@
-<p align="center" >
-  <img src="http://inmation.com/images/logo.png" alt="inmation" title="inmation">
-</p>
+![inmation header](http://www.inmation.com/images/inmation_github_header.png "inmation")
 
 ### Introduction
 
@@ -11,3 +9,5 @@ More information on [inmation.com](http://inmation.com)
 ### Library
 
 This library contains convenience functions for integrating powerful logic in system:inmation.
+
+- [path](./docs/path.md "path")
