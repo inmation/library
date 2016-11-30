@@ -8,6 +8,7 @@
 -- 20161103.1   Initial release.
 --
 local io = require('io')
+local pathLib = require('inmation.path')
 
 local FileTracer = {}
 
@@ -15,9 +16,10 @@ FileTracer.__index = FileTracer
 
 -- Public
 
-function FileTracer.new(filepath)
+function FileTracer.new(folderPath, filePrefix)
     local self = setmetatable({}, FileTracer)
-    self.filepath = filepath
+    self.folderPath = folderPath
+    self.filePrefix = filePrefix
     return self
 end
 
@@ -25,8 +27,11 @@ function FileTracer:write(msg)
     local now = inmation.currenttime()
     -- New file per day.
 	executionTimeStamp = string.format("%04d%02d%02d", inmation.gettimeparts(now))
-    local filename = self.filepath .. '_' .. tostring(executionTimeStamp) .. '.txt'
+    local filename = self.folderPath .. '/'.. self.filePrefix .. '_' .. tostring(executionTimeStamp) .. '.txt'
     local file = io.open(filename,'a')
+    if nil == file then 
+        error(string.format("Failed to create trace file. Folder '%s' does not exist.", self.folderPath)) 
+    end
     file:write(msg)
     file:flush()
     io.close(file)

@@ -1,5 +1,6 @@
 local FileTracer = require('inmation.tracer')
 local pathLib = require('inmation.path')
+local os = require('os')
 
 function get_script_path()
   local info = debug.getinfo(1,'S');
@@ -7,13 +8,22 @@ function get_script_path()
   return script_path
 end
 
-local filepath = get_script_path()
-print(filepath)
-filepath = pathLib.parentPath(filepath)
-print(filepath)
-filepath = pathLib.join(filepath, 'tmp', 'tests')
-print(filepath)
-local fileTracer = FileTracer.new(filepath)
+
+local platformIsWindows = os.getenv('HOME') == nil
+
+local folderPath = get_script_path()
+print(folderPath)
+folderPath = pathLib.parentPath(folderPath)
+print(folderPath)
+folderPath = pathLib.join(folderPath, 'tmp')
+
+
+if platformIsWindows then
+   folderPath = string.gsub(folderPath, '^/','')
+end
+print(folderPath)
+local filenamePrefix = 'tests'
+local fileTracer = FileTracer.new(folderPath, filenamePrefix)
 traceAgent:addTracer(fileTracer)
 
 allTests = {
