@@ -4,7 +4,7 @@ print("inmation - Executing tests...")
 inmation = require('mock/inmation')
 
 -- Create package aliases
-package.loaded.json = require("lib/json")
+package.loaded.json = require("lib.json")
 
 local allTests = require('tests.all-tests')
 allTests:execute()
