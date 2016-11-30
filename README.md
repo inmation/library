@@ -10,4 +10,13 @@ More information on [inmation.com](http://inmation.com)
 
 This library contains convenience functions for integrating powerful logic in system:inmation.
 
+- [condition](./docs/condition.md "condition")
+- [dropzone-file-parser](./docs/dropzone-file-parser.md "dropzone-file-parser")
+- [http-client](./docs/http-client.md "http-client")
+- [object](./docs/object.md "object")
+- [object-tree-crawler](./docs/object-tree-crawler.md "object-tree-crawler")
+- [objects](./docs/objects.md "objects")
 - [path](./docs/path.md "path")
+- [string-extension](./docs/string-extension.md "string-extension")
+- [table-extension](./docs/table-extension.md "table-extension")
+- [tracer](./docs/tracer.md "tracer")
