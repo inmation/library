@@ -1,14 +1,7 @@
 
-inmation = {
+local standardLogic = {}
 
-}
-
- -- Parent can be a parent object or the parent path string.
- function inmation.createobject(parent, objectName)
-    assert(nil, 'createobject not implemented')
-end
-
- function inmation.currenttime(localTimezone)
+ function standardLogic.currenttime(localTimezone)
     if localTimezone then
         return os.time()   
     else
@@ -16,11 +9,7 @@ end
     end
 end
 
-function inmation.getobject(path)
-    assert(nil, 'getobject not implemented')
-end
-
-function inmation.gettime(time, format)
+function standardLogic.gettime(time, format)
     if  nil == format then
         format = "%Y-%m-%d %H:%M:%S"
     end
@@ -37,14 +26,43 @@ function inmation.gettime(time, format)
     end
 end
 
-function inmation.gettimeparts(time)
-    local timeStr = inmation.gettime(time, "%Y-%m-%dT%H:%M:%S+01:00")
+function standardLogic.gettimeparts(time)
+    local timeStr = standardLogic.gettime(time, "%Y-%m-%dT%H:%M:%S+01:00")
     local inYear, inMonth, inDay, inHour, inMinute, inSecond, inZone = string.match(timeStr, '^(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d):(%d%d)(.-)$')
     return inYear, inMonth, inDay, inHour, inMinute, inSecond, inZone
 end
 
-function inmation.now()
-    return inmation.currenttime()
+function standardLogic.now()
+    return standardLogic.currenttime()
+end
+
+function standardLogic.getself()
+    return inmation
+end
+
+local overrides = {}
+
+inmation = {}
+
+setmetatable(inmation, {__index = function(self, name)
+    print(name)
+    -- First used overwritten implementation
+    if nil ~= overrides[name] then
+        return overrides[name]
+    end
+    -- Second use standard implementation
+    if nil ~= standardLogic[name] then
+        return standardLogic[name]
+    end
+    assert(nil, string.format("Method '%s' not implemented, make use of method 'inmation.setOverride(name, closure)' to add a custom implementation.", name))
+end})
+
+inmation.setOverride = function(name, closure)
+    overrides[name] = closure
+end
+
+inmation.clearOverrides = function()
+    overrides = {}
 end
 
 return inmation
