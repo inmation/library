@@ -80,7 +80,7 @@ end
 function table.contains(tbl, elem)
 	if type(tbl) ~= 'table' then return nil end
 	for _,val in pairs(tbl) do
-		if val == item then return true end
+		if val == elem then return true end
 	end
 	return false
 end
