@@ -2,7 +2,7 @@
 tests = {
     test_traceToFile = function(self)
         traceAgent:traceVerbose('Verbose message')
-        traceAgent:traceInfo('Verbose message')
+        traceAgent:traceInfo('Info message')
         traceAgent:traceWarning('Warning message')
         traceAgent:traceError('Error message')
     end,
