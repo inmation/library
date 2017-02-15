@@ -27,11 +27,27 @@ tests = {
         assert(result == nil and idx == nil, string.format("Item should not be found: %s, %s", result, idx))
     end,
 
+    test_find = function(self)
+        local tbl = { }
+        tbl.Item01 = 10
+        tbl.Item02 = 20
+
+        local testKey = 'Item02'
+        local testValue = tbl[testKey]
+
+        local v, k = table.find(tbl, function(key, value) 
+            return key == 'Item02'
+        end)
+        assert(v == testValue, string.format("Value %d expected got %d", testValue, v))
+        assert(k == testKey, string.format("Value %s expected got %s", testKey, k))
+    end,
+
     execute = function(self)
         print('Begin table-extension_tests')
         self:test_ifind1()
         self:test_ifind2()
         self:test_ifind3()
+        self:test_find()
         print('End table-extension_tests')
     end
 }

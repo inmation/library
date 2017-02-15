@@ -66,6 +66,17 @@ function table.imap(tbl, predicate)
     return result
 end
 
+function table.find(tbl, predicate)
+    for k,v in pairs(tbl) do
+        if type(predicate) == 'function' then
+            local found = predicate(k, v)
+              if found then
+                return v, k
+              end
+        end
+    end
+end
+
 function table.ifind(tbl, predicate)
     for i,v in ipairs(tbl) do
         if type(predicate) == 'function' then
