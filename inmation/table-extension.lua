@@ -96,15 +96,6 @@ function table.contains(tbl, elem)
 	return false
 end
 
-function table.concat(t1, t2)
-	if type(t1) == 'table' and type(t2) == 'table' then	
-		for i=1, #t2 do	t1[#t1+1] = t2[i] end
-		return t1
-	else
-		return nil, "Both parameters must be of type table"
-	end
-end
-
 function table.dictlen(dict)
 	if type(dict) ~= 'table' then return nil end
 	local count = 0
