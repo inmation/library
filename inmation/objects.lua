@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
 local objectLib = require("inmation.object")
@@ -33,8 +34,9 @@ objectsLib = {
         local inmObj= inmation.getobject(path)
 
         if inmObj== nil then
-            if propertyList.Type == nil then return nil, 'Type not found in propertyList.' end
-            inmObj = inmation.createobject(parentPath, propertyList.Type)
+            if propertyList.ModelClass == nil then return nil, 'ModelClass not found in propertyList.' end
+
+            inmObj = inmation.createobject(parentPath, propertyList.ModelClass, propertyList.Type)
             inmObj.ObjectName = objectName
 
             -- Mandatory properties which requires to commit before able to continue.
@@ -48,9 +50,9 @@ objectsLib = {
             if propertyList.GenerationType then inmObj.GenerationType = propertyList.GenerationType end
             inmObj:commit()
         else 
-            local objType = inmObj:type()
-            if propertyList.Type ~= nil and objType ~= propertyList.Type then
-                return nil, string.format("Object is of type '%s' instead of '%s'.", objType, propertyList.Type) 
+            local objClass = inmObj:type()
+            if propertyList.ModelClass ~= nil and objClass ~= propertyList.ModelClass then
+                return nil, string.format("Object is of model class '%s' instead of '%s'.", objClass, propertyList.ModelClass) 
             end
             -- TODO: At the moment to possible to test ServerType since it returns a number instead of a string.
             -- if propertyList.ServerType ~= nil and inmObj.ServerType ~= propertyList.ServerType then

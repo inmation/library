@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
 require('inmation.table-extension')
@@ -494,9 +495,14 @@ objectLib = {
             propertyIgnoreList.Path = {}
         end
 
-        -- Check object type.
+        -- Check object model class.
+        if propertyList.ModelClass then
+            assert(inmObj:type() == propertyList.ModelClass, string.format("Object model class mismatch; '%s' != '%s'", inmObj:type(), propertyList.ModelClass))
+            propertyIgnoreList.ModelClass = {}
+        end
+
+        -- Ignore type.
         if propertyList.Type then
-            assert(inmObj:type() == propertyList.Type, string.format("Object type mismatch; '%s' != '%s'", inmObj:type(), propertyList.Type))
             propertyIgnoreList.Type = {}
         end
 
@@ -505,7 +511,7 @@ objectLib = {
         --     TODO: At the moment it is not possible to test ServerType since it returns a number (enum) instead of a string.
         --     assert(inmObj.ServerType == propertyList.ServerType, string.format("Object ServerType mismatch; '%s' != '%s'", inmObj.ServerType, propertyList.ServerType))
             propertyIgnoreList.ServerType = {}
-        end 
+        end
 
         local isInmObjModified = false
         if propertyList.ScriptLibrary then 
@@ -547,7 +553,7 @@ objectLib = {
             end
         end
 
-        -- Linkprocessvalue for generic kpi items
+        -- Link processvalue for generic kpi items
         if propertyList.processValue then
             propertyIgnoreList.processValue = {} 
             -- Check wether the object exist in the IOModel
