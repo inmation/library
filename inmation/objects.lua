@@ -1,10 +1,11 @@
 -- inmation.objects
 -- inmation Script Library Lua Script
 --
--- (c) 2016 inmation
+-- (c) 2017 inmation
 --
 -- Version history:
 --
+-- 20170215.3   Added objectTree method to fetch a hierarchical (sub)model.
 -- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
@@ -15,6 +16,62 @@ MODEL_CLASS_DATASOURCE = 'MODEL_CLASS_DATASOURCE'
 MODEL_CLASS_GENFOLDER = 'MODEL_CLASS_GENFOLDER'
 MODEL_CLASS_HOLDERITEM = 'MODEL_CLASS_HOLDERITEM'
 MODEL_CLASS_ACTIONITEM = 'MODEL_CLASS_ACTIONITEM'
+
+local retrieveObjectTree = function(path, propertyPathList, maxDepth)
+
+    local _maxDepth = maxDepth or 999
+    retrieveTreeItem = function(inmObj, jsonParentList, depth)
+        local path = inmObj:path()
+        local jsonTreeNode = {
+            ID = inmObj.ID,    
+            Path = path,
+            Type = inmObj:type(),    
+            ObjectName = inmObj.ObjectName,
+            ObjectDescription = inmObj.ObjectDescription,
+        }
+        table.insert(jsonParentList, jsonTreeNode)
+
+        -- Retrieve the requested properties
+        if nil ~= propertyPathList then  
+            for i,propertyPath in ipairs(propertyPathList) do
+                if nil == jsonTreeNode.properties then
+                    jsonTreeNode.properties = {}
+                end
+
+                local accessProperty = function(path)
+                    local propValue = inmation.getvalue(path)
+                    return propValue or 'null'
+                end
+                -- Access property by suppressing the error when it doesn't exit.
+                local succeeded, propV= pcall(accessProperty, path .. '.' .. propertyPath)
+
+                if succeeded == true then
+                    local prop = {}
+                    prop.Path = propertyPath
+                    prop.V = propV
+                    table.insert(jsonTreeNode.properties, prop)
+                end
+            end
+        end
+            
+        local children = inmObj:children()
+        jsonTreeNode.children = {}
+        
+        if nil ~= children and #children > 0 and depth >= _maxDepth then
+            jsonTreeNode.children = nil
+        end
+        
+        if depth >= _maxDepth then return end
+        for i,child in ipairs(children) do
+            retrieveTreeItem(child, jsonTreeNode.children, depth + 1)
+        end
+    end
+
+    local rootObj = inmation.getobject(path)
+    local jsonTree = {} -- Array
+    retrieveTreeItem(rootObj, jsonTree, 1)
+    return jsonTree
+end
 
 objectsLib = {
 
@@ -82,7 +139,12 @@ objectsLib = {
 			end
 		end
 		return inmation.getobject(originPath .. '/' .. extensionPath)
-	end
+	end,
+
+    objectTree = function(self, path, propertyPathList, maxDepth)
+        local objectTree = retrieveObjectTree(path, propertyPathList, maxDepth)
+        return objectTree
+    end
 }
 
 return objectsLib
