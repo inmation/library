@@ -141,6 +141,17 @@ objectsLib = {
 		return inmation.getobject(originPath .. '/' .. extensionPath)
 	end,
 
+    ----------------------------------------------------------------------------
+    -- Retrieves a hierarchical (sub)model from a certain level (path).
+    -- @param path The root level for the hierarchical model to retrieve.
+    -- @param propertyPathList (Optional) A string array of property paths / names to retrieve for each item in the (sub)model.
+    -- @param maxDepth (Optional) Maximum tree depth to retrieve. Default value is 999.
+    -- @return Hierarchical sub(model) which contains for each object:
+        -- ID, Path, Type, ObjectName, ObjectDescription 
+        -- Properties array; contains the path & value of the properties of which the path or name matches an item in the propertyPathList
+        -- Children array; Can be empty, filled or not present. In case (the maxDepth is reached and) an item in the Hierarchical sub(model) 
+            -- does not contain the children array indicates that the children are not yet retrieved.     
+    ----------------------------------------------------------------------------
     objectTree = function(self, path, propertyPathList, maxDepth)
         local objectTree = retrieveObjectTree(path, propertyPathList, maxDepth)
         return objectTree
