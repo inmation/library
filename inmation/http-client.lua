@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20170304.5   Support for dependency injection via options in the HttpClient.new().
 -- 20161113.4   Changed Function signature method, get, post, put.
 --              Body comes now after headers.
 -- 20161020.3   Refactoring;
@@ -24,7 +25,10 @@ local json = require('json')
 --http.TIMEOUT = 10
 
 HttpClient = {
+    http = {},
+    https = {},
     json = {},
+    ltn12 = {},
 
 	METHOD_NAME = {
         GET = "GET",
@@ -47,18 +51,22 @@ HttpClient.__index = HttpClient
 
 -- Public
 
-function HttpClient:new(o)
+function HttpClient:new(o, options)
     o = o or {}   -- create object if user does not provide one
     setmetatable(o, HttpClient)
 
-    HttpClient.json = json
+    local _options = options or {}
+    HttpClient.http = _options.http or http
+    HttpClient.https = _options.https or https
+    HttpClient.json = _options.json or json
+    HttpClient.ltn12 = _options.ltn12 or ltn12
 
     return o
 end
 
 -- Returns: result, code, data, headers
 function HttpClient:method(method, url, headers, reqData)
-    if headers == nil then headers = {} end
+    if type(headers) ~= 'table' then headers = {} end
       
     local reqbody = reqData or ''
 	if type(reqData) == 'table' then
@@ -68,18 +76,18 @@ function HttpClient:method(method, url, headers, reqData)
 	
     headers[self.HEADER_NAME.CONTENT_LENGTH] = string.len(reqbody)
     
-    local protocolLib = http
+    local protocolLib = self.http
     if string.match(url, '^https:') ~= nil then
-        protocolLib = https
+        protocolLib = self.https
     end
 
     local respBody = {}
     local  response, code, respHeaders = protocolLib.request {
         method = method,
         url = url,
-		source = ltn12.source.string(reqbody),
+		source = self.ltn12.source.string(reqbody),
         headers = headers,
-        sink = ltn12.sink.table(respBody)
+        sink = self.ltn12.sink.table(respBody)
     }
     
     -- Note: response header is in lowercase.
