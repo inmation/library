@@ -13,7 +13,7 @@ local statistics = {
 	holderitems = 0,
 	ioitems = 0,
 	ionodes = 0,
-	
+
 	reset = function(self)
 		self.actionitems = 0
 		self.connectors = 0
@@ -25,11 +25,11 @@ local statistics = {
 		self.ioitems = 0
 		self.ionodes = 0
 	end,
-	
+
 	sum = function(self)
 		return self.actionitems + self.connectors + self.cores + self.datasources + self.genfolders + self.genitems + self.holderitems + self.ioitems + self.ionodes
 	end,
-	
+
 	tostring = function(self)
 		return string.format("actionitems: %d, connectors: %d, cores: %d, datasources: %d, genfolders: %d, genitems: %d, holderitems: %d, ioitems: %d, ionodes: %d", self.actionitems, self.connectors, self.cores, self.datasources, self.genfolders, self.genitems, self.holderitems, self.ioitems, self.ionodes)
 	end
@@ -77,12 +77,12 @@ end)
 
 return function()
 	local starttime = inmation.now()
-	
+
 	totalcount = 0
 	statistics:reset()
-	local node = inmation.getobject("/System")	
-	crawler:start(node)		
-	
+	local node = inmation.getobject("/System")
+	crawler:start(node)
+
 	local total_time = inmation.now() - starttime
 	return string.format("Took %03d msec for %d object, sum: %d, %s", total_time, totalcount, statistics:sum(), statistics:tostring())
 end

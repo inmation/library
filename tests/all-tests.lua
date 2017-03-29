@@ -1,8 +1,11 @@
+-- Load inmation mock globally
+inmation = require('mock/inmation')
+
 local FileTracer = require('inmation.tracer')
 local pathLib = require('inmation.path')
 local os = require('os')
 
-function get_script_path()
+local function get_script_path()
   local info = debug.getinfo(1,'S');
   local script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
   return script_path
@@ -26,7 +29,7 @@ local filenamePrefix = 'tests'
 local fileTracer = FileTracer.new(folderPath, filenamePrefix)
 traceAgent:addTracer(fileTracer)
 
-allTests = {
+local allTests = {
 
     execute = function()
         -- mocks

@@ -9,7 +9,7 @@
 --
 require('inmation.string-extension')
 
-pathLib = {
+local pathLib = {
 
 }
 
@@ -17,7 +17,7 @@ function pathLib.join(...)
     local args = {...}
     local result = table.concat(args, '/')
     result = pathLib.sanitize(result)
-    return result 
+    return result
 end
 
 function pathLib.parentPath(path)
@@ -30,7 +30,7 @@ function pathLib.sanitize(path)
     if nil == path then return end
     local pathFields = path:split('/')
     local result = ''
-    for i, v in ipairs(pathFields) do
+    for _, v in ipairs(pathFields) do
         if v ~= '' then
 
             if result == '' then

@@ -1,8 +1,5 @@
 print("inmation - Executing tests...")
 
--- Load inmation mock globally
-inmation = require('mock/inmation')
-
 -- Create package aliases
 package.loaded.json = require("lib.json")
 

@@ -3,9 +3,9 @@ local standardLogic = {}
 
  function standardLogic.currenttime(localTimezone)
     if localTimezone then
-        return os.time()   
+        return os.time()
     else
-        return os.time(os.date("!*t", os.time()))    
+        return os.time(os.date("!*t", os.time()))
     end
 end
 
@@ -44,7 +44,7 @@ local overrides = {}
 
 inmation = {}
 
-setmetatable(inmation, {__index = function(self, name)
+setmetatable(inmation, {__index = function(_, name)
     print(name)
     -- First used overwritten implementation
     if nil ~= overrides[name] then

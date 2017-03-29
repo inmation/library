@@ -1,11 +1,13 @@
-InmationObjMock = {}
+local InmationObjMock = {
+
+}
+
 InmationObjMock.__index = InmationObjMock
 
-function InmationObjMock:new(inmObjMock)
-    inmObjMock = inmObjMock or {}   -- create object if user does not provide one
-    setmetatable(inmObjMock, self)
-    self.__index = self
-    return inmObjMock
+function InmationObjMock.new(o)
+    o = o or {}   -- create object if user does not provide one
+    setmetatable(o, InmationObjMock)
+    return o
 end
 
 function InmationObjMock:path()

@@ -11,10 +11,10 @@
 -- http://www.tutorialspoint.com/lua/lua_database_access.htm
 --
 
-dbLib = {
+local dbLib = {
 	-- conditional assignment
-	iif = function(boolexp, iftrue, iffalse)		
-		if boolexp then return iftrue else return iffalse end	
+	iif = function(boolexp, iftrue, iffalse)
+		if boolexp then return iftrue else return iffalse end
 	end,
 
 	db = {
@@ -33,7 +33,7 @@ dbLib = {
 			self.usr = usr
 			self.pwd = pwd
 		end,
-		
+
 		setname = function(self, name)
 			self.name = name
 		end,
@@ -125,7 +125,7 @@ dbLib = {
 			return self.name .. "." .. name
 		end,
 
-		sqlfield = function(self, dbtable, field)
+		sqlfield = function(_, dbtable, field)
 			return dbtable .. "." .. field
 		end,
 
@@ -134,10 +134,10 @@ dbLib = {
 			local s = ""
 			for n = 1, #fields do
 				if nil ~= replace_null then
-					local sr = " CASE WHEN " .. sqlfld(dbtable, fields[n]) .. " IS NULL THEN '" .. replace_null .. "' ELSE " .. sqlfld(dbtable, fields[n]) .. " END AS s_" .. fields[n] 
-					s = s .. dbLib.iif(1 == n, sr, ", " .. sr)
+					local sr = " CASE WHEN " .. self:sqlfld(dbtable, fields[n]) .. " IS NULL THEN '" .. replace_null .. "' ELSE " .. self:sqlfld(dbtable, fields[n]) .. " END AS s_" .. fields[n]
+					s = s .. self.iif(1 == n, sr, ", " .. sr)
 				else
-					s = s .. dbLib.iif(1 == n, dbtable .. "." .. fields[n], ", " .. dbtable .. "." .. fields[n])
+					s = s .. self.iif(1 == n, dbtable .. "." .. fields[n], ", " .. dbtable .. "." .. fields[n])
 				end
 			end
 			return s

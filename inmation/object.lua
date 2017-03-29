@@ -8,14 +8,14 @@
 -- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
-require('inmation.table-extension')
 require('inmation.string-extension')
+require('inmation.table-extension')
 
 -- Proxy trace functions to optional traceAgent.
 local tracer = setmetatable({}, {
-  __index = function(self, method)
+  __index = function(_, method)
     if traceAgent then
-        return function(self, msg, timespan) 
+        return function(_, msg, timespan)
             if type(traceAgent[method]) == 'function' then
                 return traceAgent[method](traceAgent, msg, timespan)
             end
@@ -26,7 +26,7 @@ local tracer = setmetatable({}, {
   end
 })
 
-local scriptLibraryHelper = function(inmObj)
+local scriptLibraryHelperFactory = function(inmObj)
 
     local result = {
         inmObj = inmObj,
@@ -36,9 +36,9 @@ local scriptLibraryHelper = function(inmObj)
 
         ----------------------------------------------------------------------------
         -- Assigns the script items changes to the inmation object and commits the object changes.
-        -- @param onlyAssign Indicates the item changes should only be assigned to the inmation object. 
+        -- @param onlyAssign Indicates the item changes should only be assigned to the inmation object.
             -- The object changes will not be committed to the system.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         commit = function(self, onlyAssign)
             local scriptLibrary = self.inmObj.ScriptLibrary
@@ -65,14 +65,14 @@ local scriptLibraryHelper = function(inmObj)
 
         ----------------------------------------------------------------------------
         -- Resets the in memory scriptList which contains the script items.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         reset = function(self)
             local scriptList = {}
             local originalScriptList = {}
 
             local scriptLibrary = self.inmObj.ScriptLibrary
-            for i, moduleName in ipairs(scriptLibrary.LuaModuleName) do
+            for i, _ in ipairs(scriptLibrary.LuaModuleName) do
                 local scriptItem = {
                     LuaModuleName = scriptLibrary.LuaModuleName[i],
                     AdvancedLuaScript = scriptLibrary.AdvancedLuaScript[i],
@@ -87,8 +87,8 @@ local scriptLibraryHelper = function(inmObj)
 
         addedScriptItems = function(self)
             local addedScriptItems = {}
-            for i, scriptItem in ipairs(self.scriptList) do
-                local matchScriptItem = table.ifind(self.originalScriptList, function(originalScriptItem) 
+            for _, scriptItem in ipairs(self.scriptList) do
+                local matchScriptItem = table.ifind(self.originalScriptList, function(originalScriptItem)
                     return scriptItem.LuaModuleName == originalScriptItem.LuaModuleName
                 end)
 
@@ -101,7 +101,7 @@ local scriptLibraryHelper = function(inmObj)
 
         changedScriptItems = function(self)
             local changedScriptItems = {}
-            for i, scriptItem in ipairs(self.scriptList) do
+            for _, scriptItem in ipairs(self.scriptList) do
               if scriptItem.oldAdvancedLuaScript ~= nil or scriptItem.oldLuaModuleMandatoryExecution ~= nil then
                 table.insert( changedScriptItems, scriptItem)
               end
@@ -110,11 +110,11 @@ local scriptLibraryHelper = function(inmObj)
         end,
         ----------------------------------------------------------------------------
         -- Clears the in memory scriptList which contains the script items.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         clear = function(self)
            self.scriptList = {}
-           dirty = false
+           self.dirty = false
         end,
 
         ----------------------------------------------------------------------------
@@ -122,22 +122,22 @@ local scriptLibraryHelper = function(inmObj)
         -- @param LuaModuleName The module name for the script item
         -- @param AdvancedLuaScript The script body value for the script item
         -- @param LuaModuleMandatoryExecution The mandatory execution flag for the script item
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
-        createScriptItem = function(self, LuaModuleName, AdvancedLuaScript, LuaModuleMandatoryExecution)
+        createScriptItem = function(_, LuaModuleName, AdvancedLuaScript, LuaModuleMandatoryExecution)
             return {
                 LuaModuleName = LuaModuleName,
                 AdvancedLuaScript = AdvancedLuaScript,
                 LuaModuleMandatoryExecution = LuaModuleMandatoryExecution
             }
         end,
-        
+
         ----------------------------------------------------------------------------
         -- Adds a script item in the scriptLibrary of an object.
         -- @param inmObj Object which contains the scriptLibrary to extend.
         -- @param scriptItem Table which contain the script properties. This table must contain the properties 'moduleName' and 'AdvancedLuaScript'.
                 -- The property 'LuaModuleMandatoryExecution' is optional. If not provided the default value 'false' will be used.
-        -- @return nil when the script item is added successfully. In case of an error an error message will be returned.        
+        -- @return nil when the script item is added successfully. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         appendScriptItem = function(self, scriptItem)
             if type(scriptItem.LuaModuleName) ~= 'string' or #scriptItem.LuaModuleName == 0 then
@@ -148,7 +148,7 @@ local scriptLibraryHelper = function(inmObj)
                 return 'Script body is null or empty'
             end
 
-            local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem) 
+            local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem)
                 return scriptItem.LuaModuleName == storedScriptItem.LuaModuleName
             end)
             if matchScriptItem then
@@ -164,10 +164,10 @@ local scriptLibraryHelper = function(inmObj)
         -- @param inmObj Object which contains the scriptLibrary to extend.
         -- @param scriptItem Table which contain the script properties. This table must contain the properties 'moduleName' and 'AdvancedLuaScript'.
                 -- The property 'LuaModuleMandatoryExecution' is optional. If not provided the default value 'false' will be used.
-        -- @return nil when the script item is modified successfully. In case of an error an error message will be returned.        
+        -- @return nil when the script item is modified successfully. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         modifyScriptItem = function(self, scriptItem)
-            local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem) 
+            local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem)
                 return scriptItem.LuaModuleName == storedScriptItem.LuaModuleName
             end)
             if nil == matchScriptItem then
@@ -190,9 +190,9 @@ local scriptLibraryHelper = function(inmObj)
                 end
                 matchScriptItem.LuaModuleMandatoryExecution = scriptItem.LuaModuleMandatoryExecution
                 self.dirty = true
-            end  
+            end
         end,
-        
+
         ----------------------------------------------------------------------------
         -- Updates or adds a script item in the scriptLibrary of an object.
         -- @param inmObj Object which contains the scriptLibrary to modify or insert.
@@ -201,14 +201,14 @@ local scriptLibraryHelper = function(inmObj)
         -- @return nil in case the upsert is succesfull. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         upsertScriptItem = function (self, scriptItem)
-             local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem) 
+             local matchScriptItem = table.ifind(self.scriptList, function(storedScriptItem)
                 return scriptItem.LuaModuleName == storedScriptItem.LuaModuleName
             end)
             if matchScriptItem then
-                return self:modifyScriptItem(scriptItem)    
+                return self:modifyScriptItem(scriptItem)
             else
-                return self:appendScriptItem(scriptItem)   
-            end     
+                return self:appendScriptItem(scriptItem)
+            end
         end
     }
 
@@ -216,7 +216,7 @@ local scriptLibraryHelper = function(inmObj)
     return result
 end
 
-local customPropertiesHelper = function(inmObj)
+local customPropertiesHelperFactory = function(inmObj)
 
     local result = {
         inmObj = inmObj,
@@ -226,9 +226,9 @@ local customPropertiesHelper = function(inmObj)
 
         ----------------------------------------------------------------------------
         -- Assigns the custom property changes to the inmation object and commits the object changes.
-        -- @param onlyAssign Indicates the item changes should only be assigned to the inmation object. 
+        -- @param onlyAssign Indicates the item changes should only be assigned to the inmation object.
             -- The object changes will not be committed to the system.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         commit = function(self, onlyAssign)
             local customProperties = self.inmObj.CustomOptions.CustomProperties
@@ -250,13 +250,13 @@ local customPropertiesHelper = function(inmObj)
 
         ----------------------------------------------------------------------------
         -- Resets the in memory customPropertyList which contains the propertyItems items.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         reset = function(self)
             local customPropertyList = {}
             local originalCustomPropertyList = {}
             local objCustomProperties = self.inmObj.CustomOptions.CustomProperties
-            for i, propName in ipairs(objCustomProperties.CustomPropertyName) do
+            for i, _ in ipairs(objCustomProperties.CustomPropertyName) do
                 local propItem = {
                     CustomPropertyName = objCustomProperties.CustomPropertyName[i],
                     CustomPropertyValue = objCustomProperties.CustomPropertyValue[i]
@@ -271,8 +271,8 @@ local customPropertiesHelper = function(inmObj)
 
         addedCustomPropertyItems = function(self)
             local addedPropertyItems = {}
-            for i, propItem in ipairs(self.customPropertyList) do
-                local matchPropertyItem = table.ifind(self.originalCustomPropertyList, function(originalPropItem) 
+            for _, propItem in ipairs(self.customPropertyList) do
+                local matchPropertyItem = table.ifind(self.originalCustomPropertyList, function(originalPropItem)
                     return propItem.CustomPropertyName == originalPropItem.CustomPropertyName
                 end)
 
@@ -285,7 +285,7 @@ local customPropertiesHelper = function(inmObj)
 
         changedCustomPropertyItems = function(self)
             local changedPropertyItems = {}
-            for i, propItem in ipairs(self.customPropertyList) do
+            for _, propItem in ipairs(self.customPropertyList) do
               if propItem.oldPropValue ~= nil then
                 table.insert(changedPropertyItems, propItem)
               end
@@ -295,31 +295,31 @@ local customPropertiesHelper = function(inmObj)
 
         ----------------------------------------------------------------------------
         -- Clears the in memory custom property list which contains the property items.
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
         clear = function(self)
            self.customPropertyList = {}
-            dirty = false
+            self.dirty = false
         end,
 
         ----------------------------------------------------------------------------
         -- Creates a custom property item.
         -- @param CustomPropertyName The name for the property item
         -- @param CustomPropertyValue The value for the property item
-        -- @return nil       
+        -- @return nil
         ----------------------------------------------------------------------------
-        createCustomPropertyItem = function(self, CustomPropertyName, CustomPropertyValue)
+        createCustomPropertyItem = function(_, CustomPropertyName, CustomPropertyValue)
             return {
                 CustomPropertyName = CustomPropertyName,
                 CustomPropertyValue = CustomPropertyValue
             }
         end,
-        
+
         ----------------------------------------------------------------------------
         -- Adds a property item in CustomProperties of an object.
         -- @param inmObj Object which contains the CustomProperties to extend.
         -- @param propertyItem Table which contain the custom properties. This table must contain the properties 'CustomPropertyName' and 'CustomPropertyValue'.
-        -- @return nil when the property item is added successfully. In case of an error an error message will be returned.        
+        -- @return nil when the property item is added successfully. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         appendCustomPropertyItem = function(self, customPropertyItem)
             if type(customPropertyItem.CustomPropertyName) ~= 'string' or #customPropertyItem.CustomPropertyName == 0 then
@@ -330,7 +330,7 @@ local customPropertiesHelper = function(inmObj)
                 return 'Value is null'
             end
 
-            local matchPropItem = table.ifind(self.customPropertyList, function(storedPropItem) 
+            local matchPropItem = table.ifind(self.customPropertyList, function(storedPropItem)
                 return customPropertyItem.CustomPropertyName == storedPropItem.CustomPropertyName
             end)
             if matchPropItem then
@@ -345,16 +345,16 @@ local customPropertiesHelper = function(inmObj)
         -- Modifies a custom property item in CustomProperties of an object.
         -- @param inmObj Object which contains the CustomProperties to extend.
         -- @param customPropertyItem Table which contain the custom property properties. This table must contain the properties 'CustomPropertyName' and 'CustomPropertyValue'.
-        -- @return nil when the Custom property item is modified successfully. In case of an error an error message will be returned.        
+        -- @return nil when the Custom property item is modified successfully. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         modifyCustomPropertyItem = function(self, customPropertyItem)
-            local matchPropertyItem = table.ifind(self.customPropertyList, function(storedPropItem) 
+            local matchPropertyItem = table.ifind(self.customPropertyList, function(storedPropItem)
                 return customPropertyItem.CustomPropertyName == storedPropItem.CustomPropertyName
             end)
             if nil == matchPropertyItem then
                 return 'Does not contain a property with name ' .. customPropertyItem.CustomPropertyName
             end
-            
+
             if customPropertyItem.CustomPropertyValue and matchPropertyItem.CustomPropertyValue ~= customPropertyItem.CustomPropertyValue then
                 if matchPropertyItem.oldPropValue == nil then
                      matchPropertyItem.oldPropValue = matchPropertyItem.CustomPropertyValue
@@ -363,7 +363,7 @@ local customPropertiesHelper = function(inmObj)
                 self.dirty = true
             end
         end,
-        
+
         ----------------------------------------------------------------------------
         -- Updates or adds a property item in the CustomProperties of an object.
         -- @param inmObj Object which contains the CustomProperties to modify or insert.
@@ -371,14 +371,14 @@ local customPropertiesHelper = function(inmObj)
         -- @return nil in case the upsert is succesfull. In case of an error an error message will be returned.
         ----------------------------------------------------------------------------
         upsertCustomPropertyItem = function (self, customPropertyItem)
-             local matchPropertyItem = table.ifind(self.customPropertyList, function(storedPropItem) 
+             local matchPropertyItem = table.ifind(self.customPropertyList, function(storedPropItem)
                 return customPropertyItem.CustomPropertyName == storedPropItem.CustomPropertyName
             end)
             if matchPropertyItem then
-                return self:modifyCustomPropertyItem(customPropertyItem)    
+                return self:modifyCustomPropertyItem(customPropertyItem)
             else
-                return self:appendCustomPropertyItem(customPropertyItem)   
-            end     
+                return self:appendCustomPropertyItem(customPropertyItem)
+            end
         end
     }
 
@@ -386,16 +386,16 @@ local customPropertiesHelper = function(inmObj)
     return result
 end
 
-objectLib = {
+local objectLib = {
 
     ----------------------------------------------------------------------------
     -- Creates a script library helper object which can be used to perform script item changes.
     -- @param inmObj Object which contains the scriptLibrary to modify or extend.
     -- @return scriptLibraryHelper library object.
     ----------------------------------------------------------------------------
-    scriptLibraryHelper = function(self, obj)
+    scriptLibraryHelper = function(_, obj)
         tracer:traceVerbose('Creating scriptLibraryHelper')
-        result = scriptLibraryHelper(obj)
+        local result = scriptLibraryHelperFactory(obj)
         return result
     end,
 
@@ -404,51 +404,50 @@ objectLib = {
     -- @param inmObj Object which contains the CustomProperties to modify or extend.
     -- @return customPropertiesHelper object.
     ----------------------------------------------------------------------------
-    customPropertiesHelper = function(self, obj)
+    customPropertiesHelper = function(_, obj)
         tracer:traceVerbose('Creating customPropertiesHelper')
-        result = customPropertiesHelper(obj)
+        local result = customPropertiesHelperFactory(obj)
         return result
     end,
 
     ----------------------------------------------------------------------------
     -- Gets the property of an object by property path.
     -- @param inmObj Object which contains the property to retrieve.
-    -- @return First return value contains the object property. 
+    -- @return First return value contains the object property.
         --When the property path cannot be resolved the first return value is nil, the second return value contains an error message.
     ----------------------------------------------------------------------------
-    propertyValueByPath = function(self, inmObj, propertyPath)
-        local err = nil
+    propertyValueByPath = function(_, inmObj, propertyPath)
         local propNameList = propertyPath:split('.')
 
         local propItem = inmObj
         tracer:traceVerbose(string.format("propertyValueByPath; object '%s' propertyPath '%s'", inmObj.ObjectName, propertyPath))
-        for i, propName in ipairs(propNameList) do
+        for _, propName in ipairs(propNameList) do
             propItem = propItem[propName]
-            
-            if propItem == nil then 
+
+            if propItem == nil then
                 return nil, string.format("Incorrect property path in '%s'; property '%s' does not exist.", propertyPath, propName)
             end
         end
-        return propItem, nil      
+        return propItem, nil
     end,
 
-    propertyCompoundByPath = function(self, inmObj, propertyPath)
+    propertyCompoundByPath = function(_, inmObj, propertyPath)
        local propNameList = propertyPath:split('.')
 
        local propCompoundItem = inmObj
        local lastIndex = #propNameList
        for i, propName in ipairs(propNameList) do
             local accessProperty = function(propertyName)
-                return propCompoundItem[propName]
+                return propCompoundItem[propertyName]
             end
             -- Access property by suppressing the error when it doesn't exit.
            local succeeded, compoundItem = pcall(accessProperty, propName)
             if succeeded then propCompoundItem = compoundItem else propCompoundItem = nil end
-           if propCompoundItem == nil then 
+           if propCompoundItem == nil then
                return nil, nil, string.format("Incorrect property path in '%s'; property '%s' does not exist.", propertyPath, propName)
            end
-           
-           if i == lastIndex -1 then   
+
+           if i == lastIndex -1 then
                local assignablePropName = propNameList[lastIndex]
                return propCompoundItem, assignablePropName
            end
@@ -462,10 +461,9 @@ objectLib = {
         end
 
         local objPointer = inmObj
-        local err = nil
         -- If property contains a dot it is a path to a compound property.
         if propName:match('[.]') then
-            objPointer, propName, err = self:propertyCompoundByPath(inmObj, propName)
+            objPointer, propName = self:propertyCompoundByPath(inmObj, propName)
         end
 
         if objPointer[propName] ~= propValue then
@@ -514,17 +512,17 @@ objectLib = {
         end
 
         local isInmObjModified = false
-        if propertyList.ScriptLibrary then 
+        if propertyList.ScriptLibrary then
             propertyIgnoreList.ScriptLibrary = {}
             local scriptLibraryHelper = self:scriptLibraryHelper(inmObj)
             if propertyList.ScriptLibrary.explicit == true then
-                scriptLibraryHelper:clear()	
+                scriptLibraryHelper:clear()
             end
 
-            for i, scriptItem in ipairs(propertyList.ScriptLibrary.ScriptList) do
-                scriptLibraryHelper:upsertScriptItem(scriptItem)    
+            for _, scriptItem in ipairs(propertyList.ScriptLibrary.ScriptList) do
+                scriptLibraryHelper:upsertScriptItem(scriptItem)
             end
-            
+
             local changed = scriptLibraryHelper:changedScriptItems()
             local added = scriptLibraryHelper:addedScriptItems()
              tracer:traceVerbose(string.format("Object %s; modify script library: '%d' items changed, '%d' items added", inmObj:path(), #changed, #added))
@@ -535,10 +533,10 @@ objectLib = {
             end
         end
 
-        if propertyList.CustomProperties then 
-            propertyIgnoreList.CustomProperties = {} 
+        if propertyList.CustomProperties then
+            propertyIgnoreList.CustomProperties = {}
             local customPropertiesHelper = self:customPropertiesHelper(inmObj)
-            for i, customPropItem in ipairs(propertyList.CustomProperties) do
+            for _, customPropItem in ipairs(propertyList.CustomProperties) do
                 tracer:traceVerbose(string.format("Object %s; modify custom property '%s'.", inmObj:path(), customPropItem.CustomPropertyName))
                 customPropertiesHelper:upsertCustomPropertyItem(customPropItem)
             end
@@ -555,7 +553,7 @@ objectLib = {
 
         -- Link processvalue for generic kpi items
         if propertyList.processValue then
-            propertyIgnoreList.processValue = {} 
+            propertyIgnoreList.processValue = {}
             -- Check wether the object exist in the IOModel
             local pvObj = inmation.getobject(propertyList.processValue)
             if  pvObj ~= nil then
@@ -568,10 +566,10 @@ objectLib = {
         -- refs
         if propertyList.refs then
             -- Check wether all reference paths exists. If not ignore the refs property and trace an error.
-            for i, ref in ipairs(propertyList.refs) do
+            for _, ref in ipairs(propertyList.refs) do
                 local refObj = inmation.getobject(ref.path)
                 if  refObj == nil then
-                    propertyIgnoreList.refs = {} 
+                    propertyIgnoreList.refs = {}
                     tracer:traceError(string.format("Failed to reference object with path '%s'; Object does not exist.", ref.path))
                 end
             end
@@ -586,7 +584,7 @@ objectLib = {
                 end
             end
         end
-        
+
         if isInmObjModified and not onlyAssign then
             tracer:traceInfo(string.format("Object '%s' committing...", inmObj:path()))
             inmObj:commit()

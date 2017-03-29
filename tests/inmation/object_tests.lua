@@ -1,7 +1,7 @@
 local objectLib = require('inmation.object')
 
-tests = {
-    test_createScriptLibraryHelper = function(self)
+local tests = {
+    test_createScriptLibraryHelper = function()
         local objMock = {
             ScriptLibrary = {
                 LuaModuleName = {},
@@ -9,13 +9,13 @@ tests = {
                 LuaModuleMandatoryExecution = {}
              }
         }
-      
+
         local scriptLibraryHelper = objectLib:scriptLibraryHelper(objMock)
 
         assert(scriptLibraryHelper, 'Failed to create helper')
     end,
 
-    test_CustomPropertiesHelper_Create = function(self)
+    test_CustomPropertiesHelper_Create = function()
         local objMock = {
                 CustomOptions ={
                     CustomProperties = {
@@ -24,13 +24,13 @@ tests = {
                     }
                 }
         }
-      
+
         local customPropertiesHelper = objectLib:customPropertiesHelper(objMock)
 
         assert(customPropertiesHelper.customPropertyList[1].CustomPropertyName == 'testName01', 'Failed to create helper')
     end,
 
-    test_CustomPropertiesHelper_UpsertCustomPropertyItem = function(self)
+    test_CustomPropertiesHelper_UpsertCustomPropertyItem = function()
         local objMock = {
                 CustomOptions ={
                     CustomProperties = {
@@ -39,7 +39,7 @@ tests = {
                     }
                 }
         }
-      
+
         local customPropertiesHelper = objectLib:customPropertiesHelper(objMock)
 
         assert(customPropertiesHelper.customPropertyList[1].CustomPropertyName == 'testName01', 'Failed to create helper')
@@ -71,7 +71,7 @@ tests = {
         assert(#changed == 1 and changed[1].CustomPropertyName == 'testName99', 'Failed to retrieve changed custom property')
     end,
 
-    test_CustomPropertiesHelper_UpsertAdd = function(self)
+    test_CustomPropertiesHelper_UpsertAdd = function()
         local objMock = {
                 CustomOptions ={
                     CustomProperties = {
@@ -84,7 +84,7 @@ tests = {
                     return true
                 end
         }
-      
+
         local customPropertiesHelper = objectLib:customPropertiesHelper(objMock)
 
         local customPropertyList2Add = {
@@ -102,7 +102,7 @@ tests = {
             }
         }
 
-        for i, propItem in ipairs(customPropertyList2Add) do 
+        for i, propItem in ipairs(customPropertyList2Add) do
             customPropertiesHelper:upsertCustomPropertyItem(propItem)
             local addedCustomPropertyList = customPropertiesHelper:addedCustomPropertyItems()
             assert(addedCustomPropertyList ~= nil and #addedCustomPropertyList == i, 'Failed to add custom property')
@@ -114,7 +114,7 @@ tests = {
             customPropertiesHelper:commit()
     end,
 
-    test_CustomPropertiesHelper_UpsertModify = function(self)
+    test_CustomPropertiesHelper_UpsertModify = function()
         local objMock = {
                 CustomOptions ={
                     CustomProperties = {
@@ -127,7 +127,7 @@ tests = {
                     return true
                 end
         }
-      
+
         local customPropertiesHelper = objectLib:customPropertiesHelper(objMock)
 
         local customPropertyList = {
@@ -145,7 +145,7 @@ tests = {
             }
         }
 
-        for i, propItem in ipairs(customPropertyList) do 
+        for i, propItem in ipairs(customPropertyList) do
             customPropertiesHelper:upsertCustomPropertyItem(propItem)
             local changedCustomPropertyList = customPropertiesHelper:changedCustomPropertyItems()
             assert(changedCustomPropertyList ~= nil and #changedCustomPropertyList == i, 'Failed to modify custom property')

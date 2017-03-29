@@ -10,7 +10,7 @@
 
 local ioLib = require('io')
 
-DropzoneFileParser = {
+local DropzoneFileParser = {
     onListeners = {}, -- Array of objects with { action, callback }
 }
 
@@ -22,7 +22,7 @@ local function notifyListeners(self, action, args)
     -- Explicit set continue to false will stop the processing of the file.
     local continue = nil
     if #self.onListeners > 0 then
-        for i,listener in ipairs(self.onListeners) do
+        for _, listener in ipairs(self.onListeners) do
             if listener.action == "" or listener.action == action then
                 args.action = action
                 local cont = listener.callback(args)
@@ -37,9 +37,9 @@ end
 
 -- Public
 
-function DropzoneFileParser:new(o)
+function DropzoneFileParser.new(o)
     o = o or {}   -- create object if user does not provide one
-    setmetatable(o, ObjectTreeCrawler)
+    setmetatable(o, DropzoneFileParser)
 
     return o
 end
@@ -57,8 +57,7 @@ function DropzoneFileParser:onAction(action, callback)
     table.insert(self.onListeners, listener)
 end
 
-function = process(filename)
-    
+function DropzoneFileParser:process(filename)
     local args = {
         filename = filename
     }

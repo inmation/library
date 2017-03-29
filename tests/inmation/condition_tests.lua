@@ -1,7 +1,7 @@
 local conditionLib = require('inmation.condition')
 
-tests = {
-    test_iif = function(self)
+local tests = {
+    test_iif = function()
         local result = conditionLib.iif(1 == 1, 1, 3)
         assert(result == 1, 'Value mismatch')
 
@@ -9,7 +9,7 @@ tests = {
         assert(result == 3, 'Value mismatch')
     end,
 
-    test_createCondition = function(self)
+    test_createCondition = function()
         local prop = 'ObjectName'
         local oper = 'Contains'
         local val = 'PLI'
@@ -21,7 +21,7 @@ tests = {
         assert(condition.value == val, 'Value error')
     end,
 
-    test_patternContains = function(self)
+    test_patternContains = function()
         local operator = 'Contains'
         local value = 'PLI'
         local pattern = conditionLib:pattern(operator, value)
@@ -29,7 +29,7 @@ tests = {
         assert(pattern == value, 'Pattern value mismatch: ' .. pattern .. ' != ' .. value)
     end,
 
-    test_patternEndWith = function(self)
+    test_patternEndWith = function()
         local operator = 'EndsWith'
         local value = 'PLI'
         local pattern = conditionLib:pattern(operator, value)
@@ -38,7 +38,7 @@ tests = {
         assert(pattern == testValue, 'Pattern value mismatch: ' .. pattern .. ' != ' .. testValue)
     end,
 
-    test_patternEquals = function(self)
+    test_patternEquals = function()
         local operator = 'Equals'
         local value = 10.0
         local pattern = conditionLib:pattern(operator, value)
@@ -46,7 +46,7 @@ tests = {
         assert(pattern == value, 'Pattern value mismatch: ' .. pattern .. ' != ' .. value)
     end,
 
-    test_patternStartsWith = function(self)
+    test_patternStartsWith = function()
         local operator = 'StartsWith'
         local value = 'PLI'
         local pattern = conditionLib:pattern(operator, value)
@@ -55,10 +55,10 @@ tests = {
         assert(pattern == testValue, 'Pattern value mismatch: ' .. pattern .. ' != ' .. testValue)
     end,
 
-    test_Condition = function(self)
+    test_Condition = function()
         local objMock = {}
         objMock.ObjectName = 'xxPLIxx'
-        objMock.Value = 100.0 
+        objMock.Value = 100.0
 
         -- Positive Contains match
         local condition = conditionLib:createCondition('ObjectName', 'Contains', 'PLI')
@@ -98,8 +98,8 @@ tests = {
         -- Negative Equals match
         condition = conditionLib:createCondition('ObjectName', 'Equals', 'PLI')
         result = conditionLib:matchCondition(condition, objMock)
-        assert(result == false, 'Equals Condition should be a mismatch')        
-        
+        assert(result == false, 'Equals Condition should be a mismatch')
+
         -- Positive Equals numeric value match
         condition = conditionLib:createCondition('Value', 'Equals', 100.0)
         result = conditionLib:matchCondition(condition, objMock)
@@ -116,10 +116,10 @@ tests = {
         assert(result == false, 'Equals Condition should be a mismatch')
     end,
 
-    test_ConditionList = function(self)
+    test_ConditionList = function()
         local objMock = {}
         objMock.ObjectName = 'xxPLIxx'
-        objMock.Value = 100.0 
+        objMock.Value = 100.0
 
         -- Positive Contains match
         local condition1 = conditionLib:createCondition('ObjectName', 'Contains', 'EGU')

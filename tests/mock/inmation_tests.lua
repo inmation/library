@@ -1,7 +1,7 @@
 -- inmation is loaded globaly
 assert(inmation, 'inmation mock not loaded')
 
-tests = {
+local tests = {
     test_now = function(self)
         local dateNow = inmation.now()
         assert(dateNow ~= nil, "Test_datenow failed; No valid date returned")
@@ -20,7 +20,7 @@ tests = {
 
     test_override = function(self)
         inmation.setOverride('createobject', function (parentPath, modelClass, type)
-            return { 
+            return {
                 id = 1,
                 parentPath = parentPath,
                 modelClass = modelClass,

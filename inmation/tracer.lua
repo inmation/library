@@ -8,7 +8,6 @@
 -- 20161103.1   Initial release.
 --
 local io = require('io')
-local pathLib = require('inmation.path')
 
 local FileTracer = {}
 
@@ -26,11 +25,11 @@ end
 function FileTracer:write(msg)
     local now = inmation.currenttime()
     -- New file per day.
-	executionTimeStamp = string.format("%04d%02d%02d", inmation.gettimeparts(now))
+	local executionTimeStamp = string.format("%04d%02d%02d", inmation.gettimeparts(now))
     local filename = self.folderPath .. '/'.. self.filePrefix .. '_' .. tostring(executionTimeStamp) .. '.txt'
     local file = io.open(filename,'a')
-    if nil == file then 
-        error(string.format("Failed to create trace file. Folder '%s' does not exist.", self.folderPath)) 
+    if nil == file then
+        error(string.format("Failed to create trace file. Folder '%s' does not exist.", self.folderPath))
     end
     file:write(msg)
     file:flush()
@@ -57,7 +56,7 @@ traceAgent = {
 
     trace = function(self, severity, msg, timestamp)
         local time = timestamp or inmation.gettime(inmation.currenttime())
-        for i,listerner in ipairs(self.tracers) do
+        for _, listerner in ipairs(self.tracers) do
 		    listerner:trace(time, severity, msg)
         end
 	end,
@@ -65,7 +64,7 @@ traceAgent = {
     traceError = function(self, msg, timestamp)
        self:trace('ERRR', msg, timestamp)
 	end,
-	
+
     traceInfo = function(self, msg, timestamp)
        self:trace('INFO', msg, timestamp)
 	end,

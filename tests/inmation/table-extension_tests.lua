@@ -1,33 +1,33 @@
 require('inmation.table-extension')
 
 
-tests = {
-    test_ifind1 = function(self)
+local tests = {
+    test_ifind1 = function()
         local tbl = { }
-        local result, idx = table.ifind(tbl, function(name) 
+        local result, idx = table.ifind(tbl, function(name)
             return name == 'something'
         end)
         assert(result == nil and idx == nil, string.format("Item should not be found: %s, %s", result, idx))
     end,
 
-    test_ifind2 = function(self)
+    test_ifind2 = function()
         local tbl = { 'hello', 'world' }
-        local result, idx = table.ifind(tbl, function(name) 
+        local result, idx = table.ifind(tbl, function(name)
             return name == 'world'
         end)
         assert(result == 'world' and idx == 2, string.format("Proper item not found: %s, %s", result, idx))
     end,
 
-    test_ifind3 = function(self)
+    test_ifind3 = function()
         local tbl = { }
         local item = { Name = 'Test'}
-        local result, idx = table.ifind(tbl, function(storedItem) 
+        local result, idx = table.ifind(tbl, function(storedItem)
             return item.Name == storedItem.Name
         end)
         assert(result == nil and idx == nil, string.format("Item should not be found: %s, %s", result, idx))
     end,
 
-    test_find = function(self)
+    test_find = function()
         local tbl = { }
         tbl.Item01 = 10
         tbl.Item02 = 20
@@ -35,7 +35,7 @@ tests = {
         local testKey = 'Item02'
         local testValue = tbl[testKey]
 
-        local v, k = table.find(tbl, function(key, value) 
+        local v, k = table.find(tbl, function(key, _)
             return key == 'Item02'
         end)
         assert(v == testValue, string.format("Value %d expected got %d", testValue, v))

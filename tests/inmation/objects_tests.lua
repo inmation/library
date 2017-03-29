@@ -1,9 +1,9 @@
 local objectsLib = require('inmation.objects')
 
-tests = {
+local tests = {
 
-    test_ = function(self)
-
+    test_ = function()
+        assert(objectsLib, "Could not load library")
     end,
 
     execute = function(self)
