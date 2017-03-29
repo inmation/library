@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20170328.6   Lazy loading of the 'ssl.https' library.
 -- 20170304.5   Support for dependency injection via options in the HttpClient.new().
 -- 20161113.4   Changed Function signature method, get, post, put.
 --              Body comes now after headers.
@@ -16,7 +17,6 @@
 --
 
 local http = require('socket.http')
-local https = require('ssl.https')
 local ltn12 = require('ltn12')
 
 -- Script library dependencies
@@ -24,7 +24,7 @@ local json = require('json')
 
 --http.TIMEOUT = 10
 
-HttpClient = {
+local HttpClient = {
     http = {},
     https = {},
     json = {},
@@ -51,13 +51,13 @@ HttpClient.__index = HttpClient
 
 -- Public
 
-function HttpClient:new(o, options)
+function HttpClient.new(o, options)
     o = o or {}   -- create object if user does not provide one
     setmetatable(o, HttpClient)
 
     local _options = options or {}
     HttpClient.http = _options.http or http
-    HttpClient.https = _options.https or https
+    HttpClient.https = _options.https
     HttpClient.json = _options.json or json
     HttpClient.ltn12 = _options.ltn12 or ltn12
 
@@ -67,17 +67,18 @@ end
 -- Returns: result, code, data, headers
 function HttpClient:method(method, url, headers, reqData)
     if type(headers) ~= 'table' then headers = {} end
-      
+
     local reqbody = reqData or ''
 	if type(reqData) == 'table' then
 	    reqbody = self.json:encode(reqData)
         headers[self.HEADER_NAME.CONTENT_TYPE] = self.HEADER_VALUE.APPLICATION_JSON
 	end
-	
+
     headers[self.HEADER_NAME.CONTENT_LENGTH] = string.len(reqbody)
-    
+
     local protocolLib = self.http
     if string.match(url, '^https:') ~= nil then
+        if self.https == nil then self.https = require('ssl.https') end
         protocolLib = self.https
     end
 
@@ -89,14 +90,14 @@ function HttpClient:method(method, url, headers, reqData)
         headers = headers,
         sink = self.ltn12.sink.table(respBody)
     }
-    
+
     -- Note: response header is in lowercase.
     local isJson_Response = false
     if respHeaders then
         local respContentType = respHeaders[self.HEADER_NAME.CONTENT_TYPE:lower()]
         isJson_Response = string.find(respContentType or '', self.HEADER_VALUE.APPLICATION_JSON:lower()) ~= nil
     end
-    
+
     local respData = nil
 	if response and respBody ~= nil then
         if respBody ~= '' and isJson_Response then
