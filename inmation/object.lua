@@ -54,7 +54,7 @@ local scriptLibraryHelperFactory = function(inmObj)
 
             -- Fetch all execution flags from script list.
             scriptLibrary.LuaModuleMandatoryExecution = table.imap(self.scriptList, function(scriptItem)
-                return scriptItem.LuaModuleMandatoryExecution
+                return scriptItem.LuaModuleMandatoryExecution or false
             end)
 
             -- In case of a larger transaction hold the inmation commit.
@@ -183,12 +183,16 @@ local scriptLibraryHelperFactory = function(inmObj)
                 self.dirty = true
             end
 
-            if scriptItem.LuaModuleMandatoryExecution and type(scriptItem.LuaModuleMandatoryExecution) == 'boolean' and matchScriptItem.LuaModuleMandatoryExecution ~= scriptItem.LuaModuleMandatoryExecution  then
+            local mandatoryExecution = false
+            if scriptItem.LuaModuleMandatoryExecution and type(scriptItem.LuaModuleMandatoryExecution) == 'boolean' then
+                mandatoryExecution = scriptItem.LuaModuleMandatoryExecution
+            end
+
+            if matchScriptItem.LuaModuleMandatoryExecution ~= mandatoryExecution  then
                 if matchScriptItem.oldLuaModuleMandatoryExecution == nil then
                      matchScriptItem.oldLuaModuleMandatoryExecution = matchScriptItem.LuaModuleMandatoryExecution
-                     error('LuaModuleMandatoryExecution changed')
                 end
-                matchScriptItem.LuaModuleMandatoryExecution = scriptItem.LuaModuleMandatoryExecution
+                matchScriptItem.LuaModuleMandatoryExecution = mandatoryExecution
                 self.dirty = true
             end
         end,
