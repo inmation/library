@@ -66,7 +66,7 @@ function DropzoneFileParser:process(filename)
     local continue = notifyListeners(self, 'FileOpening', args)
     if false == continue then return end
 
-    local file = ioLib:open(filename)
+    local file = ioLib.open(filename)
 
     if nil ~= file then
         args.file = file
