@@ -74,11 +74,14 @@ function DropzoneFileParser:process(filename)
         continue = notifyListeners(self, 'FileOpened', args)
         if false == continue then return end
 
+        local lineNumber = 0
         for line in file:lines() do
             args.line = line
+            args.lineNumber = lineNumber
             -- on Line
             continue = notifyListeners(self, 'Line', args)
             if false == continue then break end
+            lineNumber = lineNumber + 1
         end
 
         -- on FileClosing
