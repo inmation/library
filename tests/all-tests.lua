@@ -51,6 +51,7 @@ local allTests = {
 
         -- inmation
         test('tests/inmation.condition_tests')
+        test('tests/inmation.data-structures_tests')
         test('tests/inmation.object_tests')
         test('tests/inmation.objects_tests')
         test('tests/inmation.path_tests')
