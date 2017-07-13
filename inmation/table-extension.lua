@@ -63,6 +63,7 @@ function table.imap(tbl, predicate)
             table.insert(result, item)
         end
     end
+    result.ireduce = table.ireduce
     return result
 end
 
@@ -101,4 +102,29 @@ function table.dictlen(dict)
 	local count = 0
 	for _,_ in pairs(dict) do count = count + 1	end
 	return count
+end
+
+function table.imerge(tbl1, tbl2)
+    for _,v in ipairs(tbl2) do table.insert(tbl1, v) end
+    return tbl1
+end
+
+function table.ireduce(tbl, predicate, initialvalue)
+    local accumulator = initialvalue
+    local skipIndexOne = false
+    if initialvalue == nil then
+        accumulator = tbl[1]
+        skipIndexOne = true
+    end
+
+    for i,v in ipairs(tbl) do
+        if skipIndexOne and i == 1 then
+            skipIndexOne = false
+        else
+            if type(predicate) == 'function' then
+                accumulator = predicate(accumulator, v, i, tbl)
+            end
+        end
+    end
+    return accumulator
 end
