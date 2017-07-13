@@ -62,24 +62,6 @@ local tests = {
         path = pathLib.parentPath(path)
         local pathTest = '/System/Core'
         assert(pathTest == path, string.format("Parent path: '%s' != '%s'", path, pathTest))
-    end,
-
-    execute = function(self)
-        print('Begin path_tests')
-        self:test_sanitize1()
-        self:test_sanitize2()
-        self:test_sanitize3()
-        self:test_sanitize4()
-
-        self:test_pathJoinSingle()
-        self:test_pathJoin()
-        self:test_pathJoinSingleSlash()
-        self:test_pathJoinDoubleSlashes()
-        self:test_pathJoinNil()
-        self:test_pathJoinCarrot()
-
-        self:test_parentPath()
-        print('End path_tests')
     end
 }
 

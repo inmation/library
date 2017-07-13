@@ -40,15 +40,6 @@ local tests = {
         end)
         assert(v == testValue, string.format("Value %d expected got %d", testValue, v))
         assert(k == testKey, string.format("Value %s expected got %s", testKey, k))
-    end,
-
-    execute = function(self)
-        print('Begin table-extension_tests')
-        self:test_ifind1()
-        self:test_ifind2()
-        self:test_ifind3()
-        self:test_find()
-        print('End table-extension_tests')
     end
 }
 

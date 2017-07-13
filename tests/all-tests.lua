@@ -29,22 +29,33 @@ local filenamePrefix = 'tests'
 local fileTracer = FileTracer.new(folderPath, filenamePrefix)
 traceAgent:addTracer(fileTracer)
 
+local function test(libname)
+    print(string.format("Start testing %s...", libname))
+    local tests = require(libname)
+    for k, v in pairs(tests) do
+        if string.match(k, 'test_') and type(v) == 'function' then
+            v()
+        end
+    end
+    print(string.format("Done testing %s", libname))
+end
+
 local allTests = {
 
     execute = function()
         -- mocks
-        require('tests/mock/inmation_tests'):execute()
+        test('tests/mock/inmation_tests')
 
         -- extensions
-        require('tests/inmation.string-extension_tests'):execute()
+        test('tests/inmation.string-extension_tests')
 
         -- inmation
-        require('tests/inmation.condition_tests'):execute()
-        require('tests/inmation.object_tests'):execute()
-        require('tests/inmation.objects_tests'):execute()
-        require('tests/inmation.path_tests'):execute()
-        require('tests/inmation.table-extension_tests'):execute()
-        require('tests/inmation.tracer_tests'):execute()
+        test('tests/inmation.condition_tests')
+        test('tests/inmation.object_tests')
+        test('tests/inmation.objects_tests')
+        test('tests/inmation.path_tests')
+        test('tests/inmation.table-extension_tests')
+        test('tests/inmation.tracer_tests')
     end
 }
 

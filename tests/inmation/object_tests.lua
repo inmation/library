@@ -157,16 +157,6 @@ local tests = {
 
         customPropertiesHelper:commit()
 
-    end,
-
-    execute = function(self)
-        print('Begin object_tests')
-        self:test_createScriptLibraryHelper()
-        self:test_CustomPropertiesHelper_Create()
-        self:test_CustomPropertiesHelper_UpsertCustomPropertyItem()
-        self:test_CustomPropertiesHelper_UpsertAdd()
-        self:test_CustomPropertiesHelper_UpsertModify()
-        print('End object_tests')
     end
 }
 

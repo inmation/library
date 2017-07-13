@@ -134,21 +134,6 @@ local tests = {
         conditionList = { condition1, condition2 }
         result = conditionLib:matchConditions(conditionList, objMock)
         assert(result == false, 'Contains Condition should be a mismatch')
-    end,
-
-    execute = function(self)
-        print("Begin condition_test")
-        self:test_iif()
-        self:test_createCondition()
-
-        self:test_patternContains()
-        self:test_patternEndWith()
-        self:test_patternEquals()
-        self:test_patternStartsWith()
-
-        self:test_Condition()
-        self:test_ConditionList()
-        print("End condition_test")
     end
 }
 

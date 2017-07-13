@@ -17,14 +17,6 @@ local tests = {
         local msg = 'Hello World!'
         local testStr = string.encodeBase64String(msg)
         assert(testStr == 'SGVsbG8gV29ybGQh', string.format("Expecting 'SGVsbG8gV29ybGQh', got: %s", testStr))
-    end,
-
-    execute = function(self)
-        print('Begin string-extension_tests')
-        self:test_split1()
-        self:test_DecodeFromBase64String()
-        self:test_EncodeToBase64String()
-        print('End string-extension_tests')
     end
 }
 
