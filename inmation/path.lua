@@ -22,7 +22,10 @@ end
 
 function pathLib.parentPath(path)
     path = pathLib.sanitize(path)
-    return string.gsub(path,"/[^/]+$",'' )
+    path = string.gsub(path,"/[^/]+$",'' )
+    -- When root then keep the first slash.
+    if path == '' then path = '/' end
+    return path
 end
 
 -- Remove multiple slashes '//' and remove the trailing slash

@@ -62,6 +62,13 @@ local tests = {
         path = pathLib.parentPath(path)
         local pathTest = '/System/Core'
         assert(pathTest == path, string.format("Parent path: '%s' != '%s'", path, pathTest))
+    end,
+
+    test_parentPathRoot = function()
+        local path = '/KPIGroup'
+        path = pathLib.parentPath(path)
+        local pathTest = '/'
+        assert(pathTest == path, string.format("Parent path: '%s' != '%s'", path, pathTest))
     end
 }
 
