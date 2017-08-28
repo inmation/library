@@ -2,7 +2,7 @@
 --
 -- Simple JSON encoding and decoding in pure Lua.
 --
--- Copyright 2010-2016 Jeffrey Friedl
+-- Copyright 2010-2017 Jeffrey Friedl
 -- http://regex.info/blog/
 -- Latest version: http://regex.info/blog/lua/json
 --
@@ -14,8 +14,8 @@
 --    2) the web-page links above are maintained
 --    3) the 'AUTHOR_NOTE' string below is maintained
 --
-local VERSION = '20161109.21' -- version history at end of file
-local AUTHOR_NOTE = "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20161109.21 ]-"
+local VERSION = '20170823.25' -- version history at end of file
+local AUTHOR_NOTE = "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20170823.25 ]-"
 
 --
 -- The 'AUTHOR_NOTE' variable exists so that information about the source
@@ -66,7 +66,7 @@ local OBJDEF = {
 --
 --
 --
--- ERROR HANDLING
+-- ERROR HANDLING DURING DECODE
 --
 --   With most errors during decoding, this code calls
 --
@@ -77,10 +77,10 @@ local OBJDEF = {
 --   replace the default JSON:onDecodeError() with your own function.
 --
 --   The default onDecodeError() merely augments the message with data
---   about the text and the location if known (and if a second 'etc'
---   argument had been provided to decode(), its value is tacked onto the
---   message as well), and then calls JSON.assert(), which itself defaults
---   to Lua's built-in assert(), and can also be overridden.
+--   about the text and the location (and, an 'etc' argument had been
+--   provided to decode(), its value is tacked onto the message as well),
+--   and then calls JSON.assert(), which itself defaults to Lua's built-in
+--   assert(), and can also be overridden.
 --
 --   For example, in an Adobe Lightroom plugin, you might use something like
 --
@@ -102,9 +102,9 @@ local OBJDEF = {
 --
 --      JSON:onDecodeOfHTMLError(message, text, nil, etc)
 --
---   The use of the fourth 'etc' argument allows stronger coordination
---   between decoding and error reporting, especially when you provide your
---   own error-handling routines. Continuing with the the Adobe Lightroom
+--   The use of the 'etc' argument allows stronger coordination between
+--   decoding and error reporting, especially when you provide your own
+--   error-handling routines. Continuing with the the Adobe Lightroom
 --   plugin example:
 --
 --          function JSON:onDecodeError(message, text, location, etc)
@@ -135,18 +135,18 @@ local OBJDEF = {
 --
 --   is invoked, where:
 --
---       json_text is the original JSON text being parsed,
---       location is the count of bytes into json_text where the garbage starts (6 in the example),
---       parsed_value is the Lua result of what was successfully parsed ({123} in the example),
---       etc is as above.
+--       'json_text' is the original JSON text being parsed,
+--       'location' is the count of bytes into 'json_text' where the garbage starts (6 in the example),
+--       'parsed_value' is the Lua result of what was successfully parsed ({123} in the example),
+--       'etc' is as above.
 --
 --   If JSON:onTrailingGarbage() does not abort, it should return the value decode() should return,
 --   or nil + an error message.
 --
 --     local new_value, error_message = JSON:onTrailingGarbage()
 --
---   The default handler just invokes JSON:onDecodeError("trailing garbage"...), but you can have
---   this package ignore trailing garbage via
+--   The default JSON:onTrailingGarbage() simply invokes JSON:onDecodeError("trailing garbage"...),
+--   but you can have this package ignore trailing garbage via
 --
 --      function JSON:onTrailingGarbage(json_text, location, parsed_value, etc)
 --         return parsed_value
@@ -185,10 +185,11 @@ local OBJDEF = {
 --
 --     JSON:onEncodeError(message, etc)
 --
---   which you can override in your local JSON object.
+--   which you can override in your local JSON object. Also see "HANDLING UNSUPPORTED VALUE TYPES" below.
 --
---   The 'etc' in the error call is the second argument to encode()
---   and encode_pretty(), or nil if it wasn't provided.
+--   The 'etc' in the error call is the second argument to encode() and encode_pretty(), or nil if it wasn't provided.
+--
+--
 --
 --
 -- ENCODING OPTIONS
@@ -197,10 +198,11 @@ local OBJDEF = {
 --
 --       encode_options =  {
 --           -- options for making "pretty" human-readable JSON (see "PRETTY-PRINTING" below)
---           pretty         = true,
---           indent         = "   ",
---           align_keys     = false,
---  
+--           pretty         = true,   -- turn pretty formatting on
+--           indent         = "   ",  -- use this indent for each level of an array/object
+--           align_keys     = false,  -- if true, align the keys in a way that sounds like it should be nice, but is actually ugly
+--           array_newline  = false,  -- if true, array elements become one to a line rather than inline
+--           
 --           -- other output-related options
 --           null           = "\0",   -- see "ENCODING JSON NULL VALUES" below
 --           stringsAreUtf8 = false,  -- see "HANDLING UNICODE LINE AND PARAGRAPH SEPARATORS FOR JAVA" below
@@ -231,7 +233,7 @@ local OBJDEF = {
 --   encode_pretty() is also provided: it's identical to encode() except
 --   that encode_pretty() provides a default options table if none given in the call:
 --
---       { pretty = true, align_keys = false, indent = "  " }
+--       { pretty = true, indent = "  ", align_keys = false, array_newline = false }
 --
 --   For example, if
 --
@@ -258,10 +260,11 @@ local OBJDEF = {
 --        "wards": 11
 --      }
 --
---   The following three lines return identical results:
+--   The following lines all return identical strings:
 --       JSON:encode_pretty(data)
---       JSON:encode_pretty(data, nil, { pretty = true, align_keys = false, indent = "  " })
---       JSON:encode       (data, nil, { pretty = true, align_keys = false, indent = "  " })
+--       JSON:encode_pretty(data, nil, { pretty = true, indent = "  ", align_keys = false, array_newline = false})
+--       JSON:encode_pretty(data, nil, { pretty = true, indent = "  " })
+--       JSON:encode       (data, nil, { pretty = true, indent = "  " })
 --
 --   An example of setting your own indent string:
 --
@@ -389,10 +392,9 @@ local OBJDEF = {
 --   When this is set, numeric JSON data is encoded into Lua in a form that preserves the exact
 --   JSON numeric presentation when re-encoded back out to JSON, or accessed in Lua as a string.
 --
---   (This is done by encoding the numeric data with a Lua table/metatable that returns
+--   This is done by encoding the numeric data with a Lua table/metatable that returns
 --   the possibly-imprecise numeric form when accessed numerically, but the original precise
---   representation when accessed as a string. You can also explicitly access
---   via JSON:forceString() and JSON:forceNumber())
+--   representation when accessed as a string.
 --
 --   Consider the example above, with this option turned on:
 --
@@ -415,12 +417,33 @@ local OBJDEF = {
 --   and when the data finds its way to this package's encode() function, the original full-precision
 --   representation is used.
 --
---   Even without using the JSON.decodeNumbersAsObjects option, you can encode numbers
---   in your Lua table that retain high precision upon encoding to JSON, by using the JSON:asNumber()
---   function:
+--   You can force access to the string or numeric version via
+--        JSON:forceString()
+--        JSON:forceNumber()
+--   For example,
+--        local probably_okay = JSON:forceNumber(T.small) -- 'probably_okay' is a number
+--
+--   Code the inspects the JSON-turned-Lua data using type() can run into troubles because what used to
+--   be a number can now be a table (e.g. as the small/big/precise example above shows). Update these
+--   situations to use JSON:isNumber(item), which returns nil if the item is neither a number nor one
+--   of these number objects. If it is either, it returns the number itself. For completeness there's
+--   also JSON:isString(item).
+--
+--   If you want to try to avoid the hassles of this "number as an object" kludge for all but really
+--   big numbers, you can set JSON.decodeNumbersAsObjects and then also set one or both of
+--            JSON:decodeIntegerObjectificationLength
+--            JSON:decodeDecimalObjectificationLength
+--   They refer to the length of the part of the number before and after a decimal point. If they are
+--   set and their part is at least that number of digits, objectification occurs. If both are set,
+--   objectification occurs when either length is met.
+--
+--   -----------------------
+--
+--   Even without using the JSON.decodeNumbersAsObjects option, you can encode numbers in your Lua
+--   table that retain high precision upon encoding to JSON, by using the JSON:asNumber() function:
 --
 --      T = {
---         imprecise = 123456789123456789.123456789123456789,
+--         imprecise =                123456789123456789.123456789123456789,
 --         precise   = JSON:asNumber("123456789123456789.123456789123456789")
 --      }
 --
@@ -434,17 +457,19 @@ local OBJDEF = {
 --      }
 --
 --
+--   -----------------------
 --
---   A different way to handle big/precise JSON numbers is to have decode() merely return
---   the exact string representation of the number instead of the number itself.
---   This approach might be useful when the numbers are merely some kind of opaque
---   object identifier and you want to work with them in Lua as strings anyway.
+--   A different way to handle big/precise JSON numbers is to have decode() merely return the exact
+--   string representation of the number instead of the number itself. This approach might be useful
+--   when the numbers are merely some kind of opaque object identifier and you want to work with them
+--   in Lua as strings anyway.
 --   
 --   This approach is enabled by setting
 --
 --      JSON.decodeIntegerStringificationLength = 10
 --
 --   The value is the number of digits (of the integer part of the number) at which to stringify numbers.
+--   NOTE: this setting is ignored if JSON.decodeNumbersAsObjects is true, as that takes precedence.
 --
 --   Consider our previous example with this option set to 10:
 --
@@ -484,7 +509,7 @@ local OBJDEF = {
 --      JSON.decodeIntegerStringificationLength
 --
 --   to trip stringification on precise numbers with at least JSON.decodeIntegerStringificationLength digits after
---   the decimal point.
+--   the decimal point. (Both are ignored if JSON.decodeNumbersAsObjects is true.)
 --
 --   This example:
 --
@@ -504,7 +529,40 @@ local OBJDEF = {
 --      precise:        string  9876.67890123456789012345
 --
 --
+--  HANDLING UNSUPPORTED VALUE TYPES
 --
+--   Among the encoding errors that might be raised is an attempt to convert a table value that has a type
+--   that this package hasn't accounted for: a function, userdata, or a thread. You can handle these types as table
+--   values (but not as table keys) if you supply a JSON:unsupportedTypeEncoder() method along the lines of the
+--   following example:
+--        
+--        function JSON:unsupportedTypeEncoder(value_of_unsupported_type)
+--           if type(value_of_unsupported_type) == 'function' then
+--              return "a function value"
+--           else
+--              return nil
+--           end
+--        end
+--        
+--   Your unsupportedTypeEncoder() method is actually called with a bunch of arguments:
+--
+--      self:unsupportedTypeEncoder(value, parents, etc, options, indent, for_key)
+--
+--   The 'value' is the function, thread, or userdata to be converted to JSON.
+--
+--   The 'etc' and 'options' arguments are those passed to the original encode(). The other arguments are
+--   probably of little interest; see the source code. (Note that 'for_key' is never true, as this function
+--   is invoked only on table values; table keys of these types still trigger the onEncodeError method.)
+--
+--   If your unsupportedTypeEncoder() method returns a string, it's inserted into the JSON as is.
+--   If it returns nil plus an error message, that error message is passed through to an onEncodeError invocation.
+--   If it returns only nil, processing falls through to a default onEncodeError invocation.
+--
+--   If you want to handle everything in a simple way:
+--
+--        function JSON:unsupportedTypeEncoder(value)
+--           return tostring(value)
+--        end
 --
 --
 -- SUMMARY OF METHODS YOU CAN OVERRIDE IN YOUR LOCAL LUA JSON OBJECT
@@ -515,6 +573,7 @@ local OBJDEF = {
 --    onDecodeOfHTMLError
 --    onTrailingGarbage
 --    onEncodeError
+--    unsupportedTypeEncoder
 --
 --  If you want to create a separate Lua JSON object with its own error handlers,
 --  you can reload JSON.lua or use the :new() method.
@@ -522,7 +581,7 @@ local OBJDEF = {
 ---------------------------------------------------------------------------
 
 local default_pretty_indent  = "  "
-local default_pretty_options = { pretty = true, align_keys = false, indent = default_pretty_indent  }
+local default_pretty_options = { pretty = true, indent = default_pretty_indent, align_keys = false, array_newline = false }
 
 local isArray  = { __tostring = function() return "JSON array"         end }  isArray.__index  = isArray
 local isObject = { __tostring = function() return "JSON object"        end }  isObject.__index = isObject
@@ -601,7 +660,31 @@ function OBJDEF:forceNumber(item)
       return tonumber(item)
    end
 end
-   
+
+--
+-- If the given item is a number, return it. Otherwise, return nil.
+-- This, this can be used both in a conditional and to access the number when you're not sure its form.
+--
+function OBJDEF:isNumber(item)
+   if type(item) == 'number' then
+      return item
+   elseif type(item) == 'table' and type(item.N) == 'number' then
+      return item.N
+   else
+      return nil
+   end
+end
+
+function OBJDEF:isString(item)
+   if type(item) == 'string' then
+      return item
+   elseif type(item) == 'table' and type(item.S) == 'string' then
+      return item.S
+   else
+      return nil
+   end
+end
+
 
 local function unicode_codepoint_as_utf8(codepoint)
    --
@@ -736,28 +819,55 @@ local function grok_number(self, text, start, options)
    local full_number_text = integer_part .. decimal_part .. exponent_part
 
    if options.decodeNumbersAsObjects then
-      return OBJDEF:asNumber(full_number_text), i
+
+      local objectify = false
+
+      if not options.decodeIntegerObjectificationLength and not options.decodeDecimalObjectificationLength then
+         -- no options, so objectify
+         objectify = true
+
+      elseif (options.decodeIntegerObjectificationLength
+          and
+         (integer_part:len() >= options.decodeIntegerObjectificationLength or exponent_part:len() > 0))
+
+          or
+         (options.decodeDecimalObjectificationLength 
+          and
+          (decimal_part:len() >= options.decodeDecimalObjectificationLength  or exponent_part:len() > 0))
+      then
+         -- have options and they are triggered, so objectify
+         objectify = true
+      end
+
+      if objectify then
+         return OBJDEF:asNumber(full_number_text), i
+      end
+      -- else, fall through to try to return as a straight-up number
+
+   else
+
+      -- Not always decoding numbers as objects, so perhaps encode as strings?
+
+      --
+      -- If we're told to stringify only under certain conditions, so do.
+      -- We punt a bit when there's an exponent by just stringifying no matter what.
+      -- I suppose we should really look to see whether the exponent is actually big enough one
+      -- way or the other to trip stringification, but I'll be lazy about it until someone asks.
+      --
+      if (options.decodeIntegerStringificationLength
+          and
+         (integer_part:len() >= options.decodeIntegerStringificationLength or exponent_part:len() > 0))
+
+          or
+
+         (options.decodeDecimalStringificationLength 
+          and
+          (decimal_part:len() >= options.decodeDecimalStringificationLength or exponent_part:len() > 0))
+      then
+         return full_number_text, i -- this returns the exact string representation seen in the original JSON
+      end
+
    end
-
-   --
-   -- If we're told to stringify under certain conditions, so do.
-   -- We punt a bit when there's an exponent by just stringifying no matter what.
-   -- I suppose we should really look to see whether the exponent is actually big enough one
-   -- way or the other to trip stringification, but I'll be lazy about it until someone asks.
-   --
-   if (options.decodeIntegerStringificationLength
-       and
-      (integer_part:len() >= options.decodeIntegerStringificationLength or exponent_part:len() > 0))
-
-       or
-
-      (options.decodeDecimalStringificationLength 
-       and
-       (decimal_part:len() >= options.decodeDecimalStringificationLength or exponent_part:len() > 0))
-   then
-      return full_number_text, i -- this returns the exact string representation seen in the original JSON
-   end
-
 
 
    local as_number = tonumber(full_number_text)
@@ -1044,12 +1154,19 @@ function OBJDEF:decode(text, etc, options)
    if options.decodeNumbersAsObjects == nil then
       options.decodeNumbersAsObjects = self.decodeNumbersAsObjects
    end
+   if options.decodeIntegerObjectificationLength == nil then
+      options.decodeIntegerObjectificationLength = self.decodeIntegerObjectificationLength
+   end
+   if options.decodeDecimalObjectificationLength == nil then
+      options.decodeDecimalObjectificationLength = self.decodeDecimalObjectificationLength
+   end
    if options.decodeIntegerStringificationLength == nil then
       options.decodeIntegerStringificationLength = self.decodeIntegerStringificationLength
    end
    if options.decodeDecimalStringificationLength == nil then
       options.decodeDecimalStringificationLength = self.decodeDecimalStringificationLength
    end
+
 
    --
    -- Finally, go parse it
@@ -1155,6 +1272,8 @@ local function object_or_array(self, T, etc)
          elseif not maximum_number_key or key > maximum_number_key then
             maximum_number_key = key
          end
+      elseif type(key) == 'boolean' then
+         table.insert(string_keys, tostring(key))
       else
          self:onEncodeError("can't encode table with a key of type " .. type(key), etc)
       end
@@ -1225,7 +1344,11 @@ end
 --
 --    indent         -- A string (usually of spaces) used to indent each nested level.
 --
---    align_keys     -- If true, align all the keys when formatting a table.
+--    align_keys     -- If true, align all the keys when formatting a table. The result is uglier than one might at first imagine.
+--                      Results are undefined if 'align_keys' is true but 'pretty' is not.
+--
+--    array_newline  -- If true, array elements are formatted each to their own line. The default is to all fall inline.
+--                      Results are undefined if 'array_newline' is true but 'pretty' is not.
 --
 --    null           -- If this exists with a string value, table elements with this value are output as JSON null.
 --
@@ -1236,8 +1359,7 @@ end
 --                       to also be valid Java.)
 --
 --
-local encode_value -- must predeclare because it calls itself
-function encode_value(self, value, parents, etc, options, indent, for_key)
+local function encode_value(self, value, parents, etc, options, indent, for_key)
 
    --
    -- keys in a JSON object can never be null, so we don't even consider options.null when converting a key value
@@ -1278,6 +1400,20 @@ function encode_value(self, value, parents, etc, options, indent, for_key)
       return tostring(value)
 
    elseif type(value) ~= 'table' then
+
+      if self.unsupportedTypeEncoder then
+         local user_value, user_error = self:unsupportedTypeEncoder(value, parents, etc, options, indent, for_key)
+         -- If the user's handler returns a string, use that. If it returns nil plus an error message, bail with that.
+         -- If only nil returned, fall through to the default error handler.
+         if type(user_value) == 'string' then
+            return user_value
+         elseif user_value ~= nil then
+            self:onEncodeError("unsupportedTypeEncoder method returned a " .. type(user_value), etc)
+         elseif user_error then
+            self:onEncodeError(tostring(user_error), etc)
+         end
+      end
+
       self:onEncodeError("can't convert " .. type(value) .. " to JSON", etc)
 
    elseif getmetatable(value) == isNumber then
@@ -1308,12 +1444,21 @@ function encode_value(self, value, parents, etc, options, indent, for_key)
          --
          -- An array...
          --
-         local ITEMS = { }
-         for i = 1, maximum_number_key do
-            table.insert(ITEMS, encode_value(self, T[i], parents, etc, options, indent))
+         local key_indent
+         if options.array_newline then
+            key_indent = indent .. tostring(options.indent or "")
+         else
+            key_indent = indent
          end
 
-         if options.pretty then
+         local ITEMS = { }
+         for i = 1, maximum_number_key do
+            table.insert(ITEMS, encode_value(self, T[i], parents, etc, options, key_indent))
+         end
+
+         if options.array_newline then
+            result_value = "[\n" .. key_indent .. table.concat(ITEMS, ",\n" .. key_indent) .. "\n" .. indent .. "]"
+         elseif options.pretty then
             result_value = "[ " .. table.concat(ITEMS, ", ") .. " ]"
          else
             result_value = "["  .. table.concat(ITEMS, ",")  .. "]"
@@ -1432,6 +1577,19 @@ return OBJDEF:new()
 
 --
 -- Version history:
+--
+--   20170823.25   Added support for JSON:unsupportedTypeEncoder().
+--                 Thanks to Chronos Phaenon Eosphoros (https://github.com/cpeosphoros) for the idea.
+--
+--   20170819.24   Added support for boolean keys in tables.
+--
+--   20170416.23   Added the "array_newline" formatting option suggested by yurenchen (http://www.yurenchen.com/)
+--
+--   20161128.22   Added:
+--                   JSON:isString()
+--                   JSON:isNumber()
+--                   JSON:decodeIntegerObjectificationLength
+--                   JSON:decodeDecimalObjectificationLength
 --
 --   20161109.21   Oops, had a small boo-boo in the previous update.
 --
