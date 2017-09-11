@@ -1,10 +1,11 @@
 -- inmation.object
 -- inmation Script Library Lua Script
 --
--- (c) 2016 inmation
+-- (c) 2017 inmation
 --
 -- Version history:
 --
+-- 20170911.3   Solved false negative when checking if property exists. Its value can be nil.
 -- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
@@ -425,12 +426,16 @@ local objectLib = {
 
         local propItem = inmObj
         tracer:traceVerbose(string.format("propertyValueByPath; object '%s' propertyPath '%s'", inmObj.ObjectName, propertyPath))
-        for _, propName in ipairs(propNameList) do
-            propItem = propItem[propName]
+        for idx, propName in ipairs(propNameList) do
+            local ok, result = pcall(function()
+                return propItem[propName]
+            end)
 
-            if propItem == nil then
-                return nil, string.format("Incorrect property path in '%s'; property '%s' does not exist.", propertyPath, propName)
+            -- Only check compound part because actual property can have the value nil.
+            if (not ok or (idx ~= #propNameList and not table.isTable(propItem))) then
+                return nil, string.format("Incorrect property path in '%s'; property compound '%s' does not exist.", propertyPath, propName)
             end
+            propItem = result
         end
         return propItem, nil
     end,
@@ -456,13 +461,12 @@ local objectLib = {
                return propCompoundItem, assignablePropName
            end
        end
-   end,
+    end,
 
     modifyProperty = function(self, inmObj, propName, propValue, onlyAssign)
-        local propItem, err = self:propertyValueByPath(inmObj, propName)
-        if propItem == nil then
-            error(err or "Item nil returned by propertyByPath.")
-        end
+        -- Check whether compound exists.
+        local _, err = self:propertyValueByPath(inmObj, propName)
+        if err ~= nil then error(err) end
 
         local objPointer = inmObj
         -- If property contains a dot it is a path to a compound property.
