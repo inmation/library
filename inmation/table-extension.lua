@@ -1,13 +1,20 @@
 -- inmation.table-extension
 -- inmation Script Library Lua Script
 --
--- (c) 2016 inmation BNX
+-- (c) 2017 inmation BNX
 --
 -- Version history:
 --
+-- 20170911.3   Added istable, isTable, toString
 -- 20161028.2   Added map, imap, ifind
 -- 20160919.1   Initial release.
 --
+
+function table.istable(tbl)
+    return type (tbl) == 'table'
+end
+
+table.isTable = table.istable
 
 function table.val_to_str(v)
   if "string" == type(v) then
@@ -43,6 +50,8 @@ function table.tostring(tbl)
   end
   return "{" .. table.concat( result, "," ) .. "}"
 end
+
+table.toString = table.tostring
 
 function table.map(tbl, predicate)
     local result = {}
