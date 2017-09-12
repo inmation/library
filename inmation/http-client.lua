@@ -28,13 +28,13 @@ local HEADER_NAME = {
     ACCEPT = "Accept",
     AUTHORIZATION = "Authorization",
     CONTENT_LENGTH = "Content-Length",
-    CONTENT_TYPE = "Content-Type",
+    CONTENT_TYPE = "Content-Type"
 }
 
 local HEADER_VALUE = {
     APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded",
     APPLICATION_JSON = "application/json",
-    APPLICATION_XML = "application/xml",
+    APPLICATION_XML = "application/xml"
 }
 
 local METHOD_NAME = {
