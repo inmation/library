@@ -1,7 +1,7 @@
 -- inmation.table-extension
 -- inmation Script Library Lua Script
 --
--- (c) 2017 inmation BNX
+-- (c) 2017 inmation
 --
 -- Version history:
 --

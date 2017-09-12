@@ -1,7 +1,7 @@
 -- inmation.dropzone-file-parser
 -- inmation Script Library Lua Script
 --
--- (c) 2016 inmation
+-- (c) 2017 inmation
 --
 -- Version history:
 --
