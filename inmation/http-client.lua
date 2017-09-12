@@ -22,7 +22,7 @@ local http = require('socket.http')
 local ltn12 = require('ltn12')
 
 -- Script library dependencies
-local json = require('json')
+local JSON = require('json')
 
 local HEADER_NAME = {
     ACCEPT = "Accept",
@@ -45,10 +45,9 @@ local METHOD_NAME = {
 }
 
 local HTTPClient = {
-    http = {},
-    https = {},
-    json = {},
-    ltn12 = {}
+    http = nil,
+    https = nil,
+    ltn12 = nil
 }
 
 HTTPClient.HEADER_NAME = HEADER_NAME
@@ -66,7 +65,6 @@ function HTTPClient.new(o, options)
     local _options = options or {}
     o.http = _options.http or http
     o.https = _options.https
-    o.json = _options.json or json
     o.ltn12 = _options.ltn12 or ltn12
     if (_options.port) then o.http.PORT = _options.port end
     if (_options.proxy) then o.http.PROXY = _options.proxy end
@@ -82,7 +80,7 @@ function HTTPClient:method(method, url, headers, reqData)
 
     local reqbody = reqData or ''
 	if type(reqData) == 'table' then
-	    reqbody = self.json:encode(reqData)
+	    reqbody = JSON:encode(reqData)
         headers[HEADER_NAME.CONTENT_TYPE] = HEADER_VALUE.APPLICATION_JSON
 	end
 
@@ -114,7 +112,7 @@ function HTTPClient:method(method, url, headers, reqData)
 	if response and respBody ~= nil then
         if respBody ~= '' and isJson_Response then
             local jsonString = table.concat(respBody)
-            respData = self.json:decode(jsonString)
+            respData = JSON:decode(jsonString)
         else
             respData = respBody
         end
