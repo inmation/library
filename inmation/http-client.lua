@@ -1,12 +1,14 @@
 -- inmation.http-client
 -- inmation Script Library Lua Script
 --
--- (c) 2016 inmation
+-- (c) 2017 inmation
 --
 -- Version history:
 --
+-- 20170912.7   Refactoring and options (HTTPClient.new({}, options) now supports port, proxy, timeout and useragent.
+--              Added support for DELETE method and additional header names and values.
 -- 20170328.6   Lazy loading of the 'ssl.https' library.
--- 20170304.5   Support for dependency injection via options in the HttpClient.new().
+-- 20170304.5   Support for dependency injection via options in the HTTPClient.new().
 -- 20161113.4   Changed Function signature method, get, post, put.
 --              Body comes now after headers.
 -- 20161020.3   Refactoring;
@@ -22,59 +24,69 @@ local ltn12 = require('ltn12')
 -- Script library dependencies
 local json = require('json')
 
---http.TIMEOUT = 10
+local HEADER_NAME = {
+    ACCEPT = "Accept",
+    AUTHORIZATION = "Authorization",
+    CONTENT_LENGTH = "Content-Length",
+    CONTENT_TYPE = "Content-Type",
+}
 
-local HttpClient = {
+local HEADER_VALUE = {
+    APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded",
+    APPLICATION_JSON = "application/json",
+    APPLICATION_XML = "application/xml",
+}
+
+local METHOD_NAME = {
+    DELETE = "DELETE",
+    GET = "GET",
+    POST = "POST",
+    PUT = "PUT"
+}
+
+local HTTPClient = {
     http = {},
     https = {},
     json = {},
-    ltn12 = {},
-
-	METHOD_NAME = {
-        GET = "GET",
-	    POST = "POST",
-	    PUT = "PUT"
-    },
-
-    HEADER_NAME = {
-        AUTHORIZATION = "Authorization",
-        CONTENT_LENGTH = "Content-Length",
-        CONTENT_TYPE = "Content-Type",
-    },
-
-    HEADER_VALUE = {
-        APPLICATION_JSON = "application/json",
-    }
+    ltn12 = {}
 }
 
-HttpClient.__index = HttpClient
+HTTPClient.HEADER_NAME = HEADER_NAME
+HTTPClient.METHOD_NAME = METHOD_NAME
+HTTPClient.HEADER_VALUE = HEADER_VALUE
+
+HTTPClient.__index = HTTPClient
 
 -- Public
 
-function HttpClient.new(o, options)
+function HTTPClient.new(o, options)
     o = o or {}   -- create object if user does not provide one
-    setmetatable(o, HttpClient)
+    setmetatable(o, HTTPClient)
 
     local _options = options or {}
-    HttpClient.http = _options.http or http
-    HttpClient.https = _options.https
-    HttpClient.json = _options.json or json
-    HttpClient.ltn12 = _options.ltn12 or ltn12
+    o.http = _options.http or http
+    o.https = _options.https
+    o.json = _options.json or json
+    o.ltn12 = _options.ltn12 or ltn12
+    if (_options.port) then o.http.PORT = _options.port end
+    if (_options.proxy) then o.http.PROXY = _options.proxy end
+    if (_options.timeout) then o.http.TIMEOUT = _options.timeout end
+    if (_options.useragent) then o.http.USERAGENT = _options.useragent end
 
     return o
 end
 
 -- Returns: result, code, data, headers
-function HttpClient:method(method, url, headers, reqData)
+function HTTPClient:method(method, url, headers, reqData)
     if type(headers) ~= 'table' then headers = {} end
 
     local reqbody = reqData or ''
 	if type(reqData) == 'table' then
 	    reqbody = self.json:encode(reqData)
-        headers[self.HEADER_NAME.CONTENT_TYPE] = self.HEADER_VALUE.APPLICATION_JSON
+        headers[HEADER_NAME.CONTENT_TYPE] = HEADER_VALUE.APPLICATION_JSON
 	end
 
-    headers[self.HEADER_NAME.CONTENT_LENGTH] = string.len(reqbody)
+    headers[HEADER_NAME.CONTENT_LENGTH] = string.len(reqbody)
 
     local protocolLib = self.http
     if string.match(url, '^https:') ~= nil then
@@ -94,8 +106,8 @@ function HttpClient:method(method, url, headers, reqData)
     -- Note: response header is in lowercase.
     local isJson_Response = false
     if respHeaders then
-        local respContentType = respHeaders[self.HEADER_NAME.CONTENT_TYPE:lower()]
-        isJson_Response = string.find(respContentType or '', self.HEADER_VALUE.APPLICATION_JSON:lower()) ~= nil
+        local respContentType = respHeaders[HEADER_NAME.CONTENT_TYPE:lower()]
+        isJson_Response = string.find(respContentType or '', HEADER_VALUE.APPLICATION_JSON:lower()) ~= nil
     end
 
     local respData = nil
@@ -114,16 +126,20 @@ function HttpClient:method(method, url, headers, reqData)
     return response, code, respData, respHeaders
 end
 
-function HttpClient:get(url, headers)
-	return self:method(self.METHOD_NAME.GET, url, headers)
+function HTTPClient:delete(url, headers)
+	return self:method(METHOD_NAME.DELETE, url, headers)
 end
 
-function HttpClient:post(url, headers, body)
-	return self:method(self.METHOD_NAME.POST, url, headers, body)
+function HTTPClient:get(url, headers)
+	return self:method(METHOD_NAME.GET, url, headers)
 end
 
-function HttpClient:put(url, headers, body)
-	return self:method(self.METHOD_NAME.PUT, url, headers, body)
+function HTTPClient:post(url, headers, body)
+	return self:method(METHOD_NAME.POST, url, headers, body)
 end
 
-return HttpClient
+function HTTPClient:put(url, headers, body)
+	return self:method(METHOD_NAME.PUT, url, headers, body)
+end
+
+return HTTPClient
