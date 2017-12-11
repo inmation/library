@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20171114.4   Added inspectClosure to objectTree().
 -- 20170215.3   Added objectTree method to fetch a hierarchical (sub)model.
 -- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
@@ -20,55 +21,67 @@ MODEL_CLASS_GENFOLDER = 'MODEL_CLASS_GENFOLDER'
 MODEL_CLASS_HOLDERITEM = 'MODEL_CLASS_HOLDERITEM'
 MODEL_CLASS_ACTIONITEM = 'MODEL_CLASS_ACTIONITEM'
 
-local retrieveObjectTree = function(path, propertyPathList, maxDepth)
+local retrieveObjectTree = function(path, propertyPathList, maxDepth, inspectClosure)
 
     local _maxDepth = maxDepth or 999
+    -- Assign default proxy function.
+    local _inspectClosure = function(treeNode)
+        return treeNode
+    end
+    if type(inspectClosure) == 'function' then _inspectClosure = inspectClosure end
     -- Foreward declaration
     local retrieveTreeItem = nil
     retrieveTreeItem = function(inmObj, jsonParentList, depth)
+        if inmObj == nil then return end
         local objPath = inmObj:path()
-        local jsonTreeNode = {
+        local treeNode = {
             ID = inmObj.ID,
             Path = objPath,
             Type = inmObj:type(),
             ObjectName = inmObj.ObjectName,
             ObjectDescription = inmObj.ObjectDescription,
         }
-        table.insert(jsonParentList, jsonTreeNode)
 
         -- Retrieve the requested properties
         if nil ~= propertyPathList then
-            for _, propertyPath in ipairs(propertyPathList) do
-                if nil == jsonTreeNode.properties then
-                    jsonTreeNode.properties = {}
+            for _, propertyInfo in ipairs(propertyPathList) do
+                local propertyPath = propertyInfo
+                -- Use property path as tree node name.
+                local treeNodePropName = propertyInfo
+                if type(propertyInfo) == 'table' then
+                    propertyPath = propertyInfo.p or propertyInfo.path
+                    -- Use specific name or the property path.
+                    treeNodePropName = propertyInfo.n or propertyInfo.name or propertyPath
                 end
 
-                local accessProperty = function(propPath)
-                    local propValue = inmation.getvalue(propPath)
-                    return propValue or 'null'
+                if nil == treeNode.properties then
+                    treeNode.properties = {}
                 end
+
                 -- Access property by suppressing the error when it doesn't exit.
-                local succeeded, propV= pcall(accessProperty, objPath .. '.' .. propertyPath)
-
-                if succeeded == true then
-                    local prop = {}
-                    prop.Path = propertyPath
-                    prop.V = propV
-                    table.insert(jsonTreeNode.properties, prop)
+                local propV = objectLib:propertyValueByPath(inmObj, propertyPath)
+                if propV then
+                    treeNode.properties[treeNodePropName] = propV
                 end
             end
         end
 
         local children = inmObj:children()
-        jsonTreeNode.children = {}
+        treeNode.children = {}
 
         if nil ~= children and #children > 0 and depth >= _maxDepth then
-            jsonTreeNode.children = nil
+            treeNode.children = nil
         end
+
+        -- Invoke closure so that the caller can inspect and stop adding this node in the tree.
+        treeNode = _inspectClosure(treeNode, inmObj)
+        if type(treeNode) ~= 'table' then return end
+
+        table.insert(jsonParentList, treeNode)
 
         if depth >= _maxDepth then return end
         for _, child in ipairs(children) do
-            retrieveTreeItem(child, jsonTreeNode.children, depth + 1)
+            retrieveTreeItem(child, treeNode.children, depth + 1)
         end
     end
 
@@ -151,14 +164,15 @@ local objectsLib = {
     -- @param path The root level for the hierarchical model to retrieve.
     -- @param propertyPathList (Optional) A string array of property paths / names to retrieve for each item in the (sub)model.
     -- @param maxDepth (Optional) Maximum tree depth to retrieve. Default value is 999.
+    -- @param inspectClosure so that the caller can inspect and stop adding this node in the tree.
     -- @return Hierarchical sub(model) which contains for each object:
         -- ID, Path, Type, ObjectName, ObjectDescription
         -- Properties array; contains the path & value of the properties of which the path or name matches an item in the propertyPathList
         -- Children array; Can be empty, filled or not present. In case (the maxDepth is reached and) an item in the Hierarchical sub(model)
             -- does not contain the children array indicates that the children are not yet retrieved.
     ----------------------------------------------------------------------------
-    objectTree = function(_, path, propertyPathList, maxDepth)
-        local objectTree = retrieveObjectTree(path, propertyPathList, maxDepth)
+    objectTree = function(_, path, propertyPathList, maxDepth, inspectClosure)
+        local objectTree = retrieveObjectTree(path, propertyPathList, maxDepth, inspectClosure)
         return objectTree
     end
 }
