@@ -1,4 +1,4 @@
-![inmation header](http://www.inmation.com/images/inmation_github_header.png "inmation")
+![inmation header](https://www.inmation.com/images/inmation_github_header.png "inmation")
 
 # inmation
 
