@@ -1,10 +1,11 @@
 -- inmation.http-client
 -- inmation Script Library Lua Script
 --
--- (c) 2017 inmation
+-- (c) 2018 inmation
 --
 -- Version history:
 --
+-- 20180207.8   Supports loading the default present JSON library 'dkjson'.
 -- 20170912.7   Refactoring and options (HTTPClient.new({}, options) now supports port, proxy, timeout and useragent.
 --              Added support for DELETE method and additional header names and values.
 -- 20170328.6   Lazy loading of the 'ssl.https' library.
@@ -21,8 +22,25 @@
 local http = require('socket.http')
 local ltn12 = require('ltn12')
 
--- Script library dependencies
-local JSON = require('json')
+local present, JSON = pcall(function() return require('dkjson') end)
+if present then
+    -- Make sure 'dkjson' functions can be called with colon notation, like the Jeffrey Friedl 'json' library.
+    local dkjson = JSON
+    JSON = {}
+    function JSON.decode(_, ...)
+        return dkjson.decode(...)
+    end
+    function JSON.encode(_, ...)
+        return dkjson.encode(...)
+    end
+else
+    present, JSON = pcall(function() return require('json') end)
+    if not present then
+        error("Unable to load JSON library")
+    end
+end
+package.loaded.JSON = JSON
+
 
 local HEADER_NAME = {
     ACCEPT = "Accept",
