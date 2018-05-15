@@ -1,13 +1,15 @@
 -- inmation.objects
 -- inmation Script Library Lua Script
 --
--- (c) 2017 inmation
+-- (c) 2018 inmation
 --
 -- Version history:
 --
+-- 20180404.5   From version 1.32 object id can only be fetched by 'numid' function.
 -- 20171114.4   Added inspectClosure to objectTree().
 -- 20170215.3   Added objectTree method to fetch a hierarchical (sub)model.
--- 20170206.2   Renamed previous Type is now ModelClass. New Type is to support third argument of inmation.createobject().
+-- 20170206.2   Renamed previous Type is now ModelClass.
+--              New Type is to support third argument of inmation.createobject().
 -- 20161103.1   Initial release.
 --
 require('inmation.string-extension')
@@ -34,8 +36,9 @@ local retrieveObjectTree = function(path, propertyPathList, maxDepth, inspectClo
     retrieveTreeItem = function(inmObj, jsonParentList, depth)
         if inmObj == nil then return end
         local objPath = inmObj:path()
+        local _id = inmObj:numid()
         local treeNode = {
-            ID = inmObj.ID,
+            ID = _id,
             Path = objPath,
             Type = inmObj:type(),
             ObjectName = inmObj.ObjectName,
@@ -127,11 +130,13 @@ local objectsLib = {
         else
             local objClass = inmObj:type()
             if propertyList.ModelClass ~= nil and objClass ~= propertyList.ModelClass then
-                return nil, string.format("Object is of model class '%s' instead of '%s'.", objClass, propertyList.ModelClass)
+                return nil, string.format("Object is of model class '%s' instead of '%s'.", objClass,
+                    propertyList.ModelClass)
             end
             -- TODO: At the moment to possible to test ServerType since it returns a number instead of a string.
             -- if propertyList.ServerType ~= nil and inmObj.ServerType ~= propertyList.ServerType then
-            --     return nil, string.format("Object is of ServerType '%s' instead of '%s'.", inmObj.ServerType, propertyList.ServerType)
+            --     return nil, string.format("Object is of ServerType '%s' instead of '%s'.", inmObj.ServerType,
+            --          propertyList.ServerType)
             -- end
         end
 
@@ -162,13 +167,16 @@ local objectsLib = {
     ----------------------------------------------------------------------------
     -- Retrieves a hierarchical (sub)model from a certain level (path).
     -- @param path The root level for the hierarchical model to retrieve.
-    -- @param propertyPathList (Optional) A string array of property paths / names to retrieve for each item in the (sub)model.
+    -- @param propertyPathList (Optional) A string array of property paths / names to retrieve
+    --      for each item in the (sub)model.
     -- @param maxDepth (Optional) Maximum tree depth to retrieve. Default value is 999.
     -- @param inspectClosure so that the caller can inspect and stop adding this node in the tree.
     -- @return Hierarchical sub(model) which contains for each object:
         -- ID, Path, Type, ObjectName, ObjectDescription
-        -- Properties array; contains the path & value of the properties of which the path or name matches an item in the propertyPathList
-        -- Children array; Can be empty, filled or not present. In case (the maxDepth is reached and) an item in the Hierarchical sub(model)
+        -- Properties array; contains the path & value of the properties of which the path or name matches an
+        -- item in the propertyPathList
+        -- Children array; Can be empty, filled or not present. In case (the maxDepth is reached and) an item
+        -- in the Hierarchical sub(model)
             -- does not contain the children array indicates that the children are not yet retrieved.
     ----------------------------------------------------------------------------
     objectTree = function(_, path, propertyPathList, maxDepth, inspectClosure)
