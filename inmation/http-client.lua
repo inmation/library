@@ -5,6 +5,7 @@
 --
 -- Version history:
 --
+-- 20180223.9   Convert response body to string when this is a table.
 -- 20180207.8   Supports loading the default present JSON library 'dkjson'.
 -- 20170912.7   Refactoring and options (HTTPClient.new({}, options) now supports port, proxy, timeout and useragent.
 --              Added support for DELETE method and additional header names and values.
@@ -127,10 +128,12 @@ function HTTPClient:method(method, url, headers, reqData)
     end
 
     local respData = nil
-	if response and respBody ~= nil then
-        if respBody ~= '' and isJson_Response then
-            local jsonString = table.concat(respBody)
-            respData = JSON:decode(jsonString)
+    if response and respBody ~= nil then
+        if type(respBody) == 'table' then
+            respData = table.concat(respBody)
+            if respData ~= '' and isJson_Response then
+                respData = JSON:decode(respData)
+            end
         else
             respData = respBody
         end
